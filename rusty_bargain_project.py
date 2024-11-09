@@ -261,10 +261,26 @@ print(f'Cantidad de valores ausentes luego de eliminar filas: {len(no_nan_not_r)
 df_new_filt.reset_index(drop=True, inplace=True)
 print(df_new_filt.info())
 
+#Guardando datos preprocesados
+df_new_filt.to_csv('outputs/preprocessed/preprocessed_data.csv', index=False)
+
+
 #Observo correlación
-print(df_new_filt.corr())
+numeric_df = df_new_filt.select_dtypes(include=[float, int])
+print(numeric_df.corr())
 
+#Graficamos
+correlation_matrix = numeric_df.corr()
 
+#Configuramos el tamaño de la figura
+plt.figure(figsize=(10, 10))
+
+#heatmap
+sns.heatmap(correlation_matrix, annot=True, cmap='coolwarm', fmt=".2f", linewidths=0.5)
+
+plt.title("Matriz de Correlación")
+plt.savefig(f'outputs/plots/corr_matrix.png')
+plt.show()
 
 #ENTRENAMIENTO DEL MODELO
 actual_year = 2024
@@ -496,6 +512,17 @@ LGBM_predict = LGBM_model.predict(X_LGBM_test)
 LGBM_rmse = mean_squared_error(y_LGBM_test, LGBM_predict)**0.5
 print(f'RMSE de LightGBM: {LGBM_rmse}')
 
+#Guardado de modelos
+models = {
+    'LGBM_model': LGBM_model,
+    'CatBoost_model': cb_model
+}
+
+for name, model in models.items():
+    dump(model, f'outputs/models/{name}.joblib')
+    print(f"Modelo {name} guardado como outputs/models/{name}.joblib")
+
+
 #ANÁLISIS DE MODELOS
 #Ordenando resultado en un DataFrame para mejor visualización
 data_models = {
@@ -534,6 +561,6 @@ axs[1, 0].set_title('Tiempo de Prueba por Modelo')
 axs[1, 1].barh(models_table['modelo'], models_table['RMSE'], color='r')
 axs[1, 1].set_xlabel('RMSE')
 axs[1, 1].set_title('RMSE por Modelo')
-
+plt.savefig(f'outputs/plots/models_analysis.png')
 # Mostrar el gráfico
 plt.show()
