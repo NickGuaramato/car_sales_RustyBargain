@@ -8,6 +8,7 @@ import pandas as pd
 import numpy as np
 
 import matplotlib.pyplot as plt
+import seaborn as sns
 
 from sklearn.model_selection import train_test_split
 from sklearn.tree import DecisionTreeRegressor
@@ -509,7 +510,7 @@ models_table = pd.DataFrame(data_models)
 
 print(models_table)
 
-import matplotlib.pyplot as plt
+#GRAFICA
 fig, axs = plt.subplots(nrows=2, ncols=2, figsize=(20, 12))
 fig.suptitle('Análisis de velocidad y calidad por modelo', fontsize=19)
 plt.subplots_adjust(hspace=0.4)
