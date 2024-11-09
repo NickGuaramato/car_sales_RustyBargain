@@ -1,0 +1,5269 @@
+{
+ "cells": [
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "# Hola Nick! <a class=\"tocSkip\"></a>\n",
+    "\n",
+    "Mi nombre es Oscar Flores y tengo el gusto de revisar tu proyecto. Si tienes algún comentario que quieras agregar en tus respuestas te puedes referir a mi como Oscar, no hay problema que me trates de tú.\n",
+    "\n",
+    "Si veo un error en la primera revisión solamente lo señalaré y dejaré que tú encuentres de qué se trata y cómo arreglarlo. Debo prepararte para que te desempeñes como especialista en Data, en un trabajo real, el responsable a cargo tuyo hará lo mismo. Si aún tienes dificultades para resolver esta tarea, te daré indicaciones más precisas en una siguiente iteración.\n",
+    "\n",
+    "Te dejaré mis comentarios más abajo - **por favor, no los muevas, modifiques o borres**\n",
+    "\n",
+    "Comenzaré mis comentarios con un resumen de los puntos que están bien, aquellos que debes corregir y aquellos que puedes mejorar. Luego deberás revisar todo el notebook para leer mis comentarios, los cuales estarán en rectángulos de color verde, amarillo o rojo como siguen:\n",
+    "\n",
+    "<div class=\"alert alert-block alert-success\">\n",
+    "<b>Comentario de Reviewer</b> <a class=\"tocSkip\"></a>\n",
+    "    \n",
+    "Muy bien! Toda la respuesta fue lograda satisfactoriamente.\n",
+    "</div>\n",
+    "\n",
+    "<div class=\"alert alert-block alert-warning\">\n",
+    "<b>Comentario de Reviewer</b> <a class=\"tocSkip\"></a>\n",
+    "\n",
+    "Existen detalles a mejorar. Existen recomendaciones.\n",
+    "</div>\n",
+    "\n",
+    "<div class=\"alert alert-block alert-danger\">\n",
+    "\n",
+    "<b>Comentario de Reviewer</b> <a class=\"tocSkip\"></a>\n",
+    "\n",
+    "Se necesitan correcciones en el bloque. El trabajo no puede ser aceptado con comentarios en rojo sin solucionar.\n",
+    "</div>\n",
+    "\n",
+    "Cualquier comentario que quieras agregar entre iteraciones de revisión lo puedes hacer de la siguiente manera:\n",
+    "\n",
+    "<div class=\"alert alert-block alert-info\">\n",
+    "<b>Respuesta estudiante.</b> <a class=\"tocSkip\"></a>\n",
+    "</div>\n",
+    "\n",
+    "Mucho éxito en el proyecto!"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "## Resumen de la revisión 1 <a class=\"tocSkip\"></a>"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "<div class=\"alert alert-block alert-danger\">\n",
+    "<b>Comentario de Revisor</b> <a class=\"tocSkip\"></a>\n",
+    "\n",
+    "Buen trabajo Nick, al menos en la primera parte que pude revisar, se nota que haces un análisis minucioso de la data, lo cual es muy importante para el correcto entrenamiento de los modelos. Sin embargo, en la parte de encoding, debes tener más cuidado y generar un encoding con menos columnas, ya que sin son muchas features, los modelos no podrán generalizar nada de ahí. Realiza esa modificación y revisaremos los modelos.\n",
+    "    \n",
+    "Saludos!    \n",
+    "\n",
+    "</div>"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "## Resumen de la revisión 2 <a class=\"tocSkip\"></a>"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "<div class=\"alert alert-block alert-success\">\n",
+    "<b>Comentario de Revisor v2</b> <a class=\"tocSkip\"></a>\n",
+    "\n",
+    "Bien hecho Nick, tu notebook está completo. No tengo comentarios de corrección adicionales, está aprobado.\n",
+    "    \n",
+    "Saludos!    \n",
+    "\n",
+    "</div>"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "----"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "# INTRODUCCIÓN\n",
+    "\n",
+    "El servicio de venta de autos usados Rusty Bargain está desarrollando una aplicación para atraer nuevos clientes. Gracias a esa app, se puede saber rápidamente el valor de mercado de tu coche. Se tiene acceso al historial: especificaciones técnicas, versiones de equipamiento y precios.\n",
+    "\n",
+    "Se va a crear un modelo que determine el valor del mercado de los mismos\n",
+    "A Rusty Bargain le interesa:\n",
+    "- la calidad de la predicción;\n",
+    "- la velocidad de la predicción;\n",
+    "- el tiempo requerido para el entrenamiento"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "## Preparación de datos"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 1,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "#Librerías Necesarias\n",
+    "import pandas as pd\n",
+    "import numpy as np\n",
+    "\n",
+    "from sklearn.model_selection import train_test_split\n",
+    "from sklearn.tree import DecisionTreeRegressor\n",
+    "from sklearn.ensemble import RandomForestRegressor\n",
+    "from sklearn.linear_model import LinearRegression\n",
+    "from sklearn.linear_model import LogisticRegression\n",
+    "from sklearn.preprocessing import StandardScaler\n",
+    "from sklearn.metrics import mean_squared_error\n",
+    "from sklearn.model_selection import GridSearchCV\n",
+    "from sklearn.preprocessing import OrdinalEncoder\n",
+    "\n",
+    "from catboost import CatBoostRegressor\n",
+    "from xgboost import XGBRegressor\n",
+    "from lightgbm import LGBMRegressor"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 2,
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "<class 'pandas.core.frame.DataFrame'>\n",
+      "RangeIndex: 354369 entries, 0 to 354368\n",
+      "Data columns (total 16 columns):\n",
+      " #   Column             Non-Null Count   Dtype \n",
+      "---  ------             --------------   ----- \n",
+      " 0   DateCrawled        354369 non-null  object\n",
+      " 1   Price              354369 non-null  int64 \n",
+      " 2   VehicleType        316879 non-null  object\n",
+      " 3   RegistrationYear   354369 non-null  int64 \n",
+      " 4   Gearbox            334536 non-null  object\n",
+      " 5   Power              354369 non-null  int64 \n",
+      " 6   Model              334664 non-null  object\n",
+      " 7   Mileage            354369 non-null  int64 \n",
+      " 8   RegistrationMonth  354369 non-null  int64 \n",
+      " 9   FuelType           321474 non-null  object\n",
+      " 10  Brand              354369 non-null  object\n",
+      " 11  NotRepaired        283215 non-null  object\n",
+      " 12  DateCreated        354369 non-null  object\n",
+      " 13  NumberOfPictures   354369 non-null  int64 \n",
+      " 14  PostalCode         354369 non-null  int64 \n",
+      " 15  LastSeen           354369 non-null  object\n",
+      "dtypes: int64(7), object(9)\n",
+      "memory usage: 43.3+ MB\n",
+      "None\n",
+      "\n",
+      "Estadística descriptiva de DataFrame:\n",
+      "               Price  RegistrationYear          Power        Mileage  \\\n",
+      "count  354369.000000     354369.000000  354369.000000  354369.000000   \n",
+      "mean     4416.656776       2004.234448     110.094337  128211.172535   \n",
+      "std      4514.158514         90.227958     189.850405   37905.341530   \n",
+      "min         0.000000       1000.000000       0.000000    5000.000000   \n",
+      "25%      1050.000000       1999.000000      69.000000  125000.000000   \n",
+      "50%      2700.000000       2003.000000     105.000000  150000.000000   \n",
+      "75%      6400.000000       2008.000000     143.000000  150000.000000   \n",
+      "max     20000.000000       9999.000000   20000.000000  150000.000000   \n",
+      "\n",
+      "       RegistrationMonth  NumberOfPictures     PostalCode  \n",
+      "count      354369.000000          354369.0  354369.000000  \n",
+      "mean            5.714645               0.0   50508.689087  \n",
+      "std             3.726421               0.0   25783.096248  \n",
+      "min             0.000000               0.0    1067.000000  \n",
+      "25%             3.000000               0.0   30165.000000  \n",
+      "50%             6.000000               0.0   49413.000000  \n",
+      "75%             9.000000               0.0   71083.000000  \n",
+      "max            12.000000               0.0   99998.000000  \n"
+     ]
+    }
+   ],
+   "source": [
+    "#Importando y checando información del DataFrame y su estadística descriptiva\n",
+    "df = pd.read_csv(\"/datasets/car_data.csv\")\n",
+    "\n",
+    "print(df.info())\n",
+    "print()\n",
+    "print('Estadística descriptiva de DataFrame:')\n",
+    "print(df.describe())"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "De lo explorado anteriormente, se tiene lo siguiente:\n",
+    "- Columnas con letras Mayus/Minus mezcladas. Hay que separar entre palabras con guión bajo.\n",
+    "\n",
+    "- Cambiar tipo de datos que sean necesario.\n",
+    "\n",
+    "- Columna NumberOfPictures al poseer valores cero (min=0, max=0), puede ser eliminada.\n",
+    "\n",
+    "Además:\n",
+    "\n",
+    "- Price tiene valores de 0 a 20000.\n",
+    "- Power tiene valores de 0 a 20000.\n",
+    "- RegistrationYear tiene valores de 0 a 9999.\n",
+    "- RegistrationMonth tiene valores de 0 a 12. Siendo que sólo son 12 meses lo que tiene un año. Estos vaalores se tratarán algunas celdas más abajo."
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "<div class=\"alert alert-block alert-success\">\n",
+    "<b>Comentario de Revisor</b> <a class=\"tocSkip\"></a>\n",
+    "\n",
+    "Muy bien, buen uso de describe para realizar estas observaciones\n",
+    "\n",
+    "</div>"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 3,
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "Index(['date_crawled', 'price', 'vehicle_type', 'registration_year', 'gearbox',\n",
+      "       'power', 'model', 'mileage', 'registration_month', 'fuel_type', 'brand',\n",
+      "       'not_repaired', 'date_created', 'number_of_pictures', 'postal_code',\n",
+      "       'last_seen'],\n",
+      "      dtype='object')\n"
+     ]
+    }
+   ],
+   "source": [
+    "#Cambiando formato de columnas para una mejor exploración de datos\n",
+    "df.columns = df.columns.str.replace(r'([A-Z])', r'_\\1', regex=True).str.strip('_').str.lower()\n",
+    "print(df.columns)#mostrando cambios"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "<div class=\"alert alert-block alert-success\">\n",
+    "<b>Comentario de Revisor</b> <a class=\"tocSkip\"></a>\n",
+    "\n",
+    "Bien, snakecase es muy buena idea como formato.\n",
+    "\n",
+    "</div>"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 4,
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "<class 'pandas.core.frame.DataFrame'>\n",
+      "RangeIndex: 354369 entries, 0 to 354368\n",
+      "Data columns (total 16 columns):\n",
+      " #   Column              Non-Null Count   Dtype         \n",
+      "---  ------              --------------   -----         \n",
+      " 0   date_crawled        354369 non-null  datetime64[ns]\n",
+      " 1   price               354369 non-null  int64         \n",
+      " 2   vehicle_type        316879 non-null  category      \n",
+      " 3   registration_year   354369 non-null  int64         \n",
+      " 4   gearbox             334536 non-null  category      \n",
+      " 5   power               354369 non-null  int64         \n",
+      " 6   model               334664 non-null  object        \n",
+      " 7   mileage             354369 non-null  int64         \n",
+      " 8   registration_month  354369 non-null  int64         \n",
+      " 9   fuel_type           321474 non-null  category      \n",
+      " 10  brand               354369 non-null  object        \n",
+      " 11  not_repaired        283215 non-null  object        \n",
+      " 12  date_created        354369 non-null  datetime64[ns]\n",
+      " 13  number_of_pictures  354369 non-null  int64         \n",
+      " 14  postal_code         354369 non-null  int64         \n",
+      " 15  last_seen           354369 non-null  datetime64[ns]\n",
+      "dtypes: category(3), datetime64[ns](3), int64(7), object(3)\n",
+      "memory usage: 36.2+ MB\n",
+      "None\n"
+     ]
+    }
+   ],
+   "source": [
+    "#Cambiando tipo de datos\n",
+    "date_col = df[['date_crawled', 'date_created', 'last_seen']]\n",
+    "category_col = df[['vehicle_type', 'fuel_type', 'gearbox']]\n",
+    "for col in date_col:\n",
+    "    df[col] = pd.to_datetime(df[col], format= '%d/%m/%Y %H:%M')\n",
+    "    \n",
+    "for col in category_col:\n",
+    "    df[col] = df[col].astype('category')\n",
+    "print(df.info())"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "<div class=\"alert alert-block alert-success\">\n",
+    "<b>Comentario de Revisor</b> <a class=\"tocSkip\"></a>\n",
+    "\n",
+    "Ok , correcto con los formatos\n",
+    "\n",
+    "</div>"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 5,
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "Index(['price', 'vehicle_type', 'registration_year', 'gearbox', 'power',\n",
+      "       'model', 'mileage', 'registration_month', 'fuel_type', 'brand',\n",
+      "       'not_repaired'],\n",
+      "      dtype='object')\n"
+     ]
+    }
+   ],
+   "source": [
+    "#Eliminando columnas no necesarias\n",
+    "df_new = df.drop(['number_of_pictures','date_crawled', 'date_created', 'last_seen', 'postal_code'], axis=1)\n",
+    "print(df_new.columns)#observando cambios"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "Las columnas date_crawled, date_created, last_seen y postal_code tambien se han eliminado debido a que las mismas son fechas que no tienen relación alguna con el objetivo solicitado, esto es, el precio."
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "<div class=\"alert alert-block alert-success\">\n",
+    "<b>Comentario de Revisor</b> <a class=\"tocSkip\"></a>\n",
+    "\n",
+    "Muy bien con eliminar columnas no informativas\n",
+    "\n",
+    "</div>"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "#Checando existencia de valores ausentes y duplicados\n",
+    "print(df_new.isna().sum())\n",
+    "print()\n",
+    "print('Valores duplicado:', df_new.duplicated().sum())"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "Más adelante se verá si se rellenan los valores ausentes con la moda (para categóricos) y la mediana (para númericos) o si se eliminaran los mismos."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "#Tratando valores duplicados\n",
+    "#Chequeamos la duplicidad de los mismos para saber si eliminarlos o no\n",
+    "dup_row = df_new[df_new.duplicated(keep=False)]\n",
+    "#keep=False asegura que todas las instancias duplicadas se marquen, no solo las adicionales.\n",
+    "\n",
+    "print(f'Total de registros duplicados: {len(dup_row)}')\n",
+    "\n",
+    "dup_row_sorted = dup_row.sort_values(list(df_new.columns))\n",
+    "#Muestro filas duplicadas\n",
+    "print(dup_row_sorted)"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "Debido a lo mostrado anteriormente, se ha decidido eliminar los duplicados del DataFrame, pues en un pequeño análisis se pudo observar los duplicados explicitos de este. El mismo repetía datos ya existentes."
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "<div class=\"alert alert-block alert-success\">\n",
+    "<b>Comentario de Revisor</b> <a class=\"tocSkip\"></a>\n",
+    "\n",
+    "Ok, aunque existen chances de que algunos sean realmente dos vehículos muy similares, es raro que tengan todos los parámetros iguales.\n",
+    "\n",
+    "</div>"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 6,
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "Valores duplicados: 0\n"
+     ]
+    }
+   ],
+   "source": [
+    "#Eliminando duplicados\n",
+    "df_new.drop_duplicates(inplace= True)\n",
+    "#Muestro la existencia de los cambios\n",
+    "print(f'Valores duplicados: {df_new.duplicated().sum()}')"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "Antes de tratar los valores ausentes se trabajaran datos de dudosa información (atípicos) teniendo en cuenta los objetivos de Rusty Bargain. Tales datos se pueden observar en la columna 'registration_year', 'power' y 'registration_month'"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "### Valores Atípicos"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "#Observando mínimos y máximos en columna con datos sospechosamente errados\n",
+    "columns = [\n",
+    "    ('registration_year', 'Año'),\n",
+    "    ('power', 'Potencia'),\n",
+    "    ('registration_month', 'Mes')\n",
+    "]\n",
+    "\n",
+    "for col, description in columns:\n",
+    "    print(f'{description} más bajo registrado: {df_new[col].min()}')\n",
+    "    print(f'{description} más alto registrado: {df_new[col].max()}')"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "- El año más bajo registrado para un automovil en el Dataset es 1000 y el más alto es 9999. Teniendo en cuenta que nos encontramos en el año 2024 y, además, la invención del automovil se remonta a 1886 con el primer vehiculo de tres ruedas impulsado por gasolina, se pueden filtrar tales valores acotandolos entre tales fechas.\n",
+    "Por cuestiones de comodidad y considerando que el auge de las marcas inicia a partir de 1900, el rango a usar en el filtrado de tales datos será (1900, 2024).\n",
+    "\n",
+    "- Se tiene además que la potencia mínima de vehiculos registrados en Dataset es de 0. Obviamente, un coche con potencia cero implica un coche, o sin motor o un no-coche(siendo que el mínimo para un auto es de 60CV). Mientras que para la potencia máxima se tiene 20000 CV, como actualmente en el mercado el automovil con mayor potencia es el Lotus Evija (contando con una potencia de 2039CV), esto podría tratarse de un simple error de tipeo. Se verá a continuación.\n",
+    "\n",
+    "- Para el mes de registro, se tiene un mínimo de 0 y máximo de 12. El mínimo podría indicar que, quizás, el vendedor olvidó proveer tal información a Rusty.\n",
+    "\n",
+    "Los datos anteriores se tratarán, ya sea eliminando lo necesario o rellenando datos con lo debido, antes de proceder con los valores ausentes existentes en el Dataset."
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "<div class=\"alert alert-block alert-success\">\n",
+    "<b>Comentario de Revisor</b> <a class=\"tocSkip\"></a>\n",
+    "\n",
+    "Muy bien, este análisis es simple pero importante\n",
+    "\n",
+    "</div>"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 7,
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "count    326663.000000\n",
+      "mean       2003.059955\n",
+      "std           7.600719\n",
+      "min        1910.000000\n",
+      "25%        1999.000000\n",
+      "50%        2003.000000\n",
+      "75%        2008.000000\n",
+      "max        2019.000000\n",
+      "Name: registration_year, dtype: float64\n"
+     ]
+    }
+   ],
+   "source": [
+    "#Filtrando y acotando datos para columna del año de registro (registration_year)\n",
+    "df_new_filt = df_new.query('1900 <= registration_year <= 2024')\n",
+    "print(df_new_filt['registration_year'].describe())#compruebo cambios"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 8,
+   "metadata": {
+    "scrolled": true
+   },
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "count    314923.00000\n",
+      "mean       4568.73873\n",
+      "std        4519.52608\n",
+      "min         100.00000\n",
+      "25%        1200.00000\n",
+      "50%        2899.00000\n",
+      "75%        6500.00000\n",
+      "max       20000.00000\n",
+      "Name: price, dtype: float64\n"
+     ]
+    }
+   ],
+   "source": [
+    "#filtrando precio para valores mayores o iguales a 100 (price)\n",
+    "df_new_filt = df_new_filt.query('price >= 100')\n",
+    "print(df_new_filt['price'].describe())#compruebo"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "Se ha decidido filtrar de la anterior forma debido a que se construirá un modelo que prediga tales valores (los ceros), además de que, sea dicho de paso, precios por debajo de 100 euros son casos en extremo específicos, como promociones, precio simbólico de venta, subasta, etc."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 9,
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "count    279720.000000\n",
+      "mean        121.842260\n",
+      "std          63.716551\n",
+      "min          45.000000\n",
+      "25%          78.000000\n",
+      "50%         111.000000\n",
+      "75%         150.000000\n",
+      "max        2000.000000\n",
+      "Name: power, dtype: float64\n"
+     ]
+    }
+   ],
+   "source": [
+    "#Limitando valores en la columna de potencia  y sustituyendo valores atípicos con valores NaN(power)\n",
+    "df_new_filt = df_new_filt.query('power <= 2000')\n",
+    "#reemplazo\n",
+    "df_new_filt.loc[df_new_filt['power'] < 45, 'power'] = np.nan\n",
+    "print(df_new_filt['power'].describe())#compruebo"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "En la celda anterior se filtró la potencia para valores menores o iguales a 2000. Se conservan todos los valores por debajo de este (incluyendo los de potencia 0) para luego tratar el mínimo arrojado por el Dataset (valor extraño/atípico) como un valor ausente, y luego, en el apartado donde se tratarán los valores ausentes, se procederá a rellenar o elimminar tales datos, dependiendo del análisis y a la conclusión a la que se llegue para crear un modelo robusto.\n",
+    "\n",
+    "Se ha decidido hacer para valores menores a 45 debido a que en el mercado, desde el año 1960 con la producción del Peel P50, la gran mayoría de los coches comerciales chicos, cuya caracteristica más notable es su baja potencia, van por encima de los 45CV."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 10,
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "1     0.066093\n",
+      "2     0.060785\n",
+      "3     0.098572\n",
+      "4     0.084428\n",
+      "5     0.083176\n",
+      "6     0.184823\n",
+      "7     0.078240\n",
+      "8     0.064362\n",
+      "9     0.067939\n",
+      "10    0.074269\n",
+      "11    0.068390\n",
+      "12    0.068923\n",
+      "Name: registration_month, dtype: float64\n"
+     ]
+    }
+   ],
+   "source": [
+    "#Tratando valores atípicos. Mes 0 (registration_month)\n",
+    "#Reemplanzando con la mediana\n",
+    "df_new_filt.loc[df_new_filt['registration_month'] == 0, 'registration_month'] = df_new_filt['registration_month'].median()\n",
+    "df_new_filt['registration_month'] = df_new_filt['registration_month'].astype('int')\n",
+    "print(df_new_filt['registration_month'].value_counts(normalize=True).sort_index())#compruebo valores únicos"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "<div class=\"alert alert-block alert-success\">\n",
+    "<b>Comentario de Revisor</b> <a class=\"tocSkip\"></a>\n",
+    "\n",
+    "Ok, muy bien\n",
+    "\n",
+    "</div>"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "### Valores Ausentes\n",
+    "\n",
+    "Tratando los valores ausentes en: vehicle_type, gearbox, fuel_type, model, not_repaired y power."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {
+    "scrolled": true
+   },
+   "outputs": [],
+   "source": [
+    "#Observo el DF actualizado respecto a los valores ausentes\n",
+    "print(df_new_filt.isna().sum())"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "Se intentarán rellenar tales valores ausentes creando funciones que se implementarán en cada columna para lograr esto, a su vez, se tratarán aquellos que no pudieron haber sido rellenados eliminando los mismos."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 11,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "#Función moda para usar en columnas de datos categóricos faltantes\n",
+    "def mode_f(var):#creo una función para la moda\n",
+    "    return var.mode().iloc[0] if len(var) > 0 else np.nan"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "#### vehicle_type\n",
+    "\n",
+    "Los tipos de vehiculos están relacionados respecto a la marca y al modelo del coche, por lo que se procederá a usar tales categorías para rellenar los valores ausentes con la moda."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 12,
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "Cantidad de valores ausentes luego de aplicar función: 4963\n"
+     ]
+    }
+   ],
+   "source": [
+    "vehicle_values = df_new_filt.dropna(subset=['vehicle_type', 'model'])\n",
+    "\n",
+    "vehicle_model = vehicle_values.groupby(['brand','model'])['vehicle_type'].agg(mode_f).reset_index()\n",
+    "vehicle_model_dict = vehicle_model.set_index(['brand', 'model'])['vehicle_type'].to_dict()\n",
+    "\n",
+    "def filling_v(row):\n",
+    "    model = row['model']\n",
+    "    vehicle = row['vehicle_type']\n",
+    "    brand = row['brand']\n",
+    "\n",
+    "    if pd.isna(vehicle):\n",
+    "        return vehicle_model_dict.get((brand, model), np.nan)\n",
+    "    return vehicle\n",
+    "\n",
+    "#aplico función al Dataset y almaceno en columna\n",
+    "df_new_filt['vehicle_type'] = df_new_filt.apply(filling_v, axis=1)\n",
+    "\n",
+    "#Compruebo existencia de valores ausentes luego de la función\n",
+    "no_value_v = df_new_filt[df_new_filt['vehicle_type'].isna()]\n",
+    "print(f'Cantidad de valores ausentes luego de aplicar función: {len(no_value_v)}')"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 13,
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "Cantidad de valores ausentes luego de eliminar filas: 0\n"
+     ]
+    }
+   ],
+   "source": [
+    "#elimino los que no pudieron ser rellenados\n",
+    "df_new_filt = df_new_filt.dropna(subset=['vehicle_type'])\n",
+    "no_nan_v = df_new_filt[df_new_filt['vehicle_type'].isna()]\n",
+    "print(f'Cantidad de valores ausentes luego de eliminar filas: {len(no_nan_v)}')"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "#### gearbox\n",
+    "\n",
+    "Como el tipo de caja está relacionada con respecto al modelo y la marca del vehiculo, se intentarán rellenar los valores ausentes con la moda de las mismas por ser variables categóricas."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 14,
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "Cantidad de valores ausentes luego de aplicar función: 875\n"
+     ]
+    }
+   ],
+   "source": [
+    "#Filtrando columnas\n",
+    "gearbox_values = df_new_filt.dropna(subset=['gearbox', 'model'])\n",
+    "\n",
+    "gearbox_model = gearbox_values.groupby(['brand', 'model'])['gearbox'].agg(mode_f).reset_index()\n",
+    "gearbox_model_dict = gearbox_model.set_index(['brand', 'model'])['gearbox'].to_dict()\n",
+    "\n",
+    "def filling_g(row):#creo función que llenará la columna con los valores faltantantes\n",
+    "    model = row['model']\n",
+    "    gearbox = row['gearbox']\n",
+    "    brand = row['brand']\n",
+    "\n",
+    "    if pd.isna(gearbox):\n",
+    "        return gearbox_model_dict.get((brand, model), np.nan)\n",
+    "    return gearbox\n",
+    "\n",
+    "#aplico función a Dataset y guardo en columna del mismo\n",
+    "df_new_filt['gearbox'] = df_new_filt.apply(filling_g, axis=1)\n",
+    "\n",
+    "#Comprobando si existen valores sin rellenar\n",
+    "no_value_g = df_new_filt[df_new_filt['gearbox'].isna()]\n",
+    "print(f'Cantidad de valores ausentes luego de aplicar función: {len(no_value_g)}')"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 15,
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "Cantidad de valores ausentes luego de eliminar filas: 0\n"
+     ]
+    }
+   ],
+   "source": [
+    "df_new_filt = df_new_filt.dropna(subset=['gearbox'])\n",
+    "no_nan_g = df_new_filt[df_new_filt['gearbox'].isna()]\n",
+    "print(f'Cantidad de valores ausentes luego de eliminar filas: {len(no_nan_g)}')"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "#### fuel_type\n",
+    "\n",
+    "Como petrol = gasoline, primero se procederá a hacer tal reemplazo antes de proceder a filtrar los valores respecto al modelo del vehiculo, el cual está relacionado con el tipo de combustible que estos usan."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 16,
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "Cantidad de valores ausentes luego de aplicar función: 2021\n"
+     ]
+    }
+   ],
+   "source": [
+    "#Reemplazo\n",
+    "df_new_filt['fuel_type'] = df_new_filt['fuel_type'].replace('petrol', 'gasoline')\n",
+    "\n",
+    "#Filtro\n",
+    "fuel_values = df_new_filt.dropna(subset=['fuel_type', 'model'])\n",
+    "\n",
+    "fuel_model = fuel_values.groupby(['model'])['fuel_type'].agg(mode_f).reset_index()\n",
+    "fuel_model_dict = fuel_model.set_index(['model'])['fuel_type'].to_dict()\n",
+    "\n",
+    "def filling_f(row):#creo función\n",
+    "    model = row['model']\n",
+    "    fuel = row['fuel_type']\n",
+    "    \n",
+    "    if pd.isna(fuel):\n",
+    "        return fuel_model_dict.get(model, np.nan)\n",
+    "    return fuel\n",
+    "\n",
+    "#aplico función al Dataset y almaceno en columna\n",
+    "df_new_filt['fuel_type'] = df_new_filt.apply(filling_f, axis=1)\n",
+    "\n",
+    "#Compruebo existencia de valores ausentes luego de la función\n",
+    "no_value_f = df_new_filt[df_new_filt['fuel_type'].isna()]\n",
+    "print(f'Cantidad de valores ausentes luego de aplicar función: {len(no_value_f)}')"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 17,
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "Cantidad de valores ausentes luego de eliminar filas: 0\n"
+     ]
+    }
+   ],
+   "source": [
+    "df_new_filt = df_new_filt.dropna(subset=['fuel_type'])\n",
+    "no_nan_f = df_new_filt[df_new_filt['fuel_type'].isna()]\n",
+    "print(f'Cantidad de valores ausentes luego de eliminar filas: {len(no_nan_f)}')"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "#### model\n",
+    "\n",
+    "Los modelos tienen una relación directa con la marca del coche y el año en que fueron puestos al mercado."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 18,
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "Cantidad de valores ausentes luego de aplicar función: 8423\n"
+     ]
+    }
+   ],
+   "source": [
+    "model_values = df_new_filt.dropna(subset=['model'])\n",
+    "\n",
+    "model_brand = model_values.groupby(['brand','registration_year'])['model'].agg(mode_f).reset_index()\n",
+    "model_brand_dict = model_brand.set_index(['brand', 'registration_year'])['model'].to_dict()\n",
+    "\n",
+    "def filling_m(row):\n",
+    "    model = row['model']\n",
+    "    year = row['registration_year']\n",
+    "    brand = row['brand']\n",
+    "\n",
+    "    if pd.isna(model):\n",
+    "        return model_brand_dict.get((brand, model), np.nan)\n",
+    "    return model\n",
+    "\n",
+    "#aplico función al Dataset y almaceno en columna\n",
+    "df_new_filt['model'] = df_new_filt.apply(filling_m, axis=1)\n",
+    "\n",
+    "#Compruebo existencia de valores ausentes luego de la función\n",
+    "no_value_m = df_new_filt[df_new_filt['model'].isna()]\n",
+    "print(f'Cantidad de valores ausentes luego de aplicar función: {len(no_value_m)}')"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 19,
+   "metadata": {
+    "scrolled": true
+   },
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "Cantidad de valores ausentes luego de eliminar filas: 0\n"
+     ]
+    }
+   ],
+   "source": [
+    "df_new_filt = df_new_filt.dropna(subset=['model'])\n",
+    "no_nan_m = df_new_filt[df_new_filt['model'].isna()]\n",
+    "print(f'Cantidad de valores ausentes luego de eliminar filas: {len(no_nan_m)}')"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "#### power\n",
+    "\n",
+    "Ahora se intentarán rellenar los valores ausentes en este columna en función del modelo del coche, ya que la potencia está relacionado con el mismo."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 20,
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "Cantidad de valores ausentes luego de aplicar función: 30332\n"
+     ]
+    }
+   ],
+   "source": [
+    "#filtrando\n",
+    "df_new_filt['power'] = pd.to_numeric(df_new_filt['power'], errors='coerce')#cambio tipo de dato a númerico\n",
+    "power_values = df_new_filt.dropna(subset=['power'])\n",
+    "\n",
+    "power_model = power_values.groupby(['model'])['power'].median().reset_index()\n",
+    "power_model_dict = power_model.set_index(['model'])['power'].to_dict()\n",
+    "\n",
+    "def filling_p(row):\n",
+    "    model = row['model']\n",
+    "    power = row['power']\n",
+    "\n",
+    "    if pd.isna(power):\n",
+    "        return model_brand_dict.get(model, np.nan)\n",
+    "    return power\n",
+    "\n",
+    "#Aplico y almaceno\n",
+    "df_new_filt['power'] = df_new_filt.apply(filling_p, axis=1)\n",
+    "\n",
+    "#compruebo existencia de ausentes luego de aplicada la función\n",
+    "no_value_p = df_new_filt[df_new_filt['power'].isna()]\n",
+    "print(f'Cantidad de valores ausentes luego de aplicar función: {len(no_value_p)}')"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 21,
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "Cantidad de valores ausentes luego de eliminar filas: 0\n"
+     ]
+    }
+   ],
+   "source": [
+    "df_new_filt = df_new_filt.dropna(subset=['power'])\n",
+    "no_nan_p = df_new_filt[df_new_filt['power'].isna()]\n",
+    "print(f'Cantidad de valores ausentes luego de eliminar filas: {len(no_nan_p)}')"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "#### not_repaired\n",
+    "\n",
+    "Como not_repaired depende de quien vende el autommovil, de si tal información fue proporcionada o no, se ha tomado la decisión de eliminar tales valores ausentes"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 22,
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "price                     0\n",
+      "vehicle_type              0\n",
+      "registration_year         0\n",
+      "gearbox                   0\n",
+      "power                     0\n",
+      "model                     0\n",
+      "mileage                   0\n",
+      "registration_month        0\n",
+      "fuel_type                 0\n",
+      "brand                     0\n",
+      "not_repaired          39632\n",
+      "dtype: int64\n",
+      "Cantidad de valores ausentes luego de eliminar filas: 0\n"
+     ]
+    }
+   ],
+   "source": [
+    "#Observó cantidad de valores ausentes\n",
+    "print(df_new_filt.isna().sum())\n",
+    "#elimino\n",
+    "df_new_filt = df_new_filt.dropna(subset=['not_repaired'])\n",
+    "no_nan_not_r = df_new_filt[df_new_filt['power'].isna()]\n",
+    "print(f'Cantidad de valores ausentes luego de eliminar filas: {len(no_nan_not_r)}')"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 23,
+   "metadata": {
+    "scrolled": true
+   },
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "<class 'pandas.core.frame.DataFrame'>\n",
+      "RangeIndex: 228568 entries, 0 to 228567\n",
+      "Data columns (total 11 columns):\n",
+      " #   Column              Non-Null Count   Dtype  \n",
+      "---  ------              --------------   -----  \n",
+      " 0   price               228568 non-null  int64  \n",
+      " 1   vehicle_type        228568 non-null  object \n",
+      " 2   registration_year   228568 non-null  int64  \n",
+      " 3   gearbox             228568 non-null  object \n",
+      " 4   power               228568 non-null  float64\n",
+      " 5   model               228568 non-null  object \n",
+      " 6   mileage             228568 non-null  int64  \n",
+      " 7   registration_month  228568 non-null  int64  \n",
+      " 8   fuel_type           228568 non-null  object \n",
+      " 9   brand               228568 non-null  object \n",
+      " 10  not_repaired        228568 non-null  object \n",
+      "dtypes: float64(1), int64(4), object(6)\n",
+      "memory usage: 19.2+ MB\n",
+      "None\n"
+     ]
+    }
+   ],
+   "source": [
+    "#Nuevo DataFrame\n",
+    "df_new_filt.reset_index(drop=True, inplace=True)\n",
+    "print(df_new_filt.info())"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 24,
+   "metadata": {
+    "scrolled": true
+   },
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "                       price  registration_year     power   mileage  \\\n",
+      "price               1.000000           0.485073  0.435873 -0.400043   \n",
+      "registration_year   0.485073           1.000000  0.080923 -0.334778   \n",
+      "power               0.435873           0.080923  1.000000  0.101538   \n",
+      "mileage            -0.400043          -0.334778  0.101538  1.000000   \n",
+      "registration_month  0.011892          -0.002466  0.017384  0.006372   \n",
+      "\n",
+      "                    registration_month  \n",
+      "price                         0.011892  \n",
+      "registration_year            -0.002466  \n",
+      "power                         0.017384  \n",
+      "mileage                       0.006372  \n",
+      "registration_month            1.000000  \n"
+     ]
+    }
+   ],
+   "source": [
+    "#Observo correlación\n",
+    "print(df_new_filt.corr())"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "De la correlación se ha obtenido lo siguiente:\n",
+    "- Precio (price): \n",
+    "    - respecto a año de registo (registration_year): correlación positiva, es decir, mientras más nuevo el vehiculo que ha sido registrado, más alto será su precio.\n",
+    "    - respecto a potencia (power): positiva. Coche con mayor potencia tiende a ser más costoso.\n",
+    "    - respecto a kilometraje (mileage): correlación negativa. Mientras más recorrido tenga el auto más económico será el mismo.\n",
+    "\n",
+    "- Año de registro (registration_year):\n",
+    "    - respecto a potencia (power): Correlación muy débil. Indica que no hay relación respecto a esta característica.\n",
+    "    - respecto a kilometraje (mileage): negativa. Sugiere que los vehiculos más antiguos RESPECTO AL AÑO DE REGISTRO MENOS RECIENTE tiende a tener mayor kilometraje."
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "<div class=\"alert alert-block alert-success\">\n",
+    "<b>Comentario de Revisor</b> <a class=\"tocSkip\"></a>\n",
+    "\n",
+    "Excelente con la imputación, muy bien todo\n",
+    "\n",
+    "</div>"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "## Entrenamiento del modelo \n",
+    "\n",
+    "Antes de pasar a entrenar el modelo, primero crearemos una nueva característica en el Dataset ya filtrado. Esta característica tendrá como finalidad almacenar la antigüedad de cada vehiculo."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 25,
+   "metadata": {
+    "scrolled": false
+   },
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "        price vehicle_type  registration_year gearbox  power        model  \\\n",
+      "0        1500        small               2001  manual   75.0         golf   \n",
+      "1        3600        small               2008  manual   69.0        fabia   \n",
+      "2         650        sedan               1995  manual  102.0          3er   \n",
+      "3        2200  convertible               2004  manual  109.0      2_reihe   \n",
+      "4        2000        sedan               2004  manual  105.0      3_reihe   \n",
+      "...       ...          ...                ...     ...    ...          ...   \n",
+      "228563   7900        sedan               2010  manual  140.0         golf   \n",
+      "228564   5250        wagon               2016    auto  150.0          159   \n",
+      "228565   3200        sedan               2004  manual  225.0         leon   \n",
+      "228566   1199  convertible               2000    auto  101.0       fortwo   \n",
+      "228567   9200          bus               1996  manual  102.0  transporter   \n",
+      "\n",
+      "        mileage  registration_month fuel_type       brand not_repaired  \\\n",
+      "0        150000                   6  gasoline  volkswagen           no   \n",
+      "1         90000                   7  gasoline       skoda           no   \n",
+      "2        150000                  10  gasoline         bmw          yes   \n",
+      "3        150000                   8  gasoline     peugeot           no   \n",
+      "4        150000                  12  gasoline       mazda           no   \n",
+      "...         ...                 ...       ...         ...          ...   \n",
+      "228563   150000                   7  gasoline  volkswagen           no   \n",
+      "228564   150000                  12  gasoline  alfa_romeo           no   \n",
+      "228565   150000                   5  gasoline        seat          yes   \n",
+      "228566   125000                   3  gasoline       smart           no   \n",
+      "228567   150000                   3  gasoline  volkswagen           no   \n",
+      "\n",
+      "        vehicle_age  \n",
+      "0                23  \n",
+      "1                16  \n",
+      "2                29  \n",
+      "3                20  \n",
+      "4                20  \n",
+      "...             ...  \n",
+      "228563           14  \n",
+      "228564            8  \n",
+      "228565           20  \n",
+      "228566           24  \n",
+      "228567           28  \n",
+      "\n",
+      "[228568 rows x 12 columns]\n",
+      "\n",
+      "count    228568.000000\n",
+      "mean         20.467598\n",
+      "std           6.415644\n",
+      "min           5.000000\n",
+      "25%          16.000000\n",
+      "50%          20.000000\n",
+      "75%          25.000000\n",
+      "max         114.000000\n",
+      "Name: vehicle_age, dtype: float64\n"
+     ]
+    }
+   ],
+   "source": [
+    "actual_year = 2024\n",
+    "df_new_filt['vehicle_age'] = actual_year - df_new_filt['registration_year']\n",
+    "df_new_filt.rename(columns={'registration_year' : 'vehicle_age'})\n",
+    "print(df_new_filt)\n",
+    "print()\n",
+    "print(df_new_filt['vehicle_age'].describe())"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 26,
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "Index(['price', 'vehicle_type', 'registration_year', 'gearbox', 'power',\n",
+      "       'model', 'mileage', 'fuel_type', 'brand', 'not_repaired',\n",
+      "       'vehicle_age'],\n",
+      "      dtype='object')\n"
+     ]
+    }
+   ],
+   "source": [
+    "#Último ajuste\n",
+    "df_new_filt = df_new_filt.drop(['registration_month'], axis=1)\n",
+    "#observo cambios\n",
+    "print(df_new_filt.columns)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 32,
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "Luego de codificado de frecuencia y escalado:\n",
+      "   price  vehicle_type  registration_year   gearbox     power     model  \\\n",
+      "0   1500      0.236862               2001  0.794998 -0.788873  0.084693   \n",
+      "1   3600      0.236862               2008  0.794998 -0.887403  0.006956   \n",
+      "2    650      0.300305               1995  0.794998 -0.345488  0.060144   \n",
+      "3   2200      0.064939               2004  0.794998 -0.230537  0.015540   \n",
+      "4   2000      0.300305               2004  0.794998 -0.296223  0.010798   \n",
+      "\n",
+      "    mileage  fuel_type     brand  not_repaired  vehicle_age  \n",
+      "0  0.611530   0.981787  0.212256      0.885474     0.394724  \n",
+      "1 -1.015947   0.981787  0.018025      0.885474    -0.696362  \n",
+      "2  0.611530   0.981787  0.109591      0.114526     1.329940  \n",
+      "3  0.611530   0.981787  0.031505      0.885474    -0.072884  \n",
+      "4  0.611530   0.981787  0.016446      0.885474    -0.072884  \n"
+     ]
+    }
+   ],
+   "source": [
+    "#Codificación y Escalado\n",
+    "categorical_cols = ['vehicle_type', 'gearbox', 'fuel_type', 'brand', 'model', 'not_repaired']\n",
+    "numerical_cols = ['power', 'mileage', 'vehicle_age']\n",
+    "\n",
+    "#Asigno a variable que luego será usada\n",
+    "df_new_filt_OHE = df_new_filt.copy()\n",
+    "\n",
+    "#Codifico frecuencia para columnas categóricas\n",
+    "#Asigno proporción de su aparición en las respectivas columnas\n",
+    "for col in categorical_cols:\n",
+    "    encod_frequency = df_new_filt_OHE[col].value_counts() / len(df_new_filt_OHE)\n",
+    "    df_new_filt_OHE[col] = df_new_filt_OHE[col].map(encod_frequency)\n",
+    "\n",
+    "#Escalo características númericas\n",
+    "scaler = StandardScaler()\n",
+    "df_new_filt_OHE[numerical_cols] = scaler.fit_transform(df_new_filt_OHE[numerical_cols])\n",
+    "\n",
+    "#Observo\n",
+    "print('Luego de codificado de frecuencia y escalado:')\n",
+    "print(df_new_filt_OHE.head())"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "<div class=\"alert alert-block alert-danger\">\n",
+    "<b>Comentario de Revisor</b> <a class=\"tocSkip\"></a>\n",
+    "\n",
+    "Aquí hay un error muy frecuente que afecta considerablemente a los modelos. Nota que el enconding generó 305 columnas. Esto es un espacio dimensional demasiado grande para los modelos y no aprenderán bien de la data. Si quieres más información acerca de esto busca por \"curse of dimensionality\", hay ejemplos muy claros que muestran que con dimensiones grandes, la necesidad de data se vuelve abismalmente grande.\n",
+    "    \n",
+    "Realiza alguna modificación (simplifica valores de una feature o remueve alguna feature) de modo que no queden más de 40 columnas.    \n",
+    "\n",
+    "</div>\n",
+    "\n",
+    "<div class=\"alert alert-block alert-info\">\n",
+    "<b>Respuesta estudiante.</b> <a class=\"tocSkip\"></a>\n",
+    "\n",
+    "Estimado Oscar, un placer y mis más gratos saludos el dirigirme a usted. Aquí he realizado el respectivo ajuste según lo solicitado por su persona. Para evitar que me genere lo señalado, he decidido no encodificar por OHE, sino que he optado por codificar la frecuencia para las respectivas columnas y mapear esa frecuencia a los valores originales en la columna. Así logré mantener sólo mis 11 columnas y evité generar tantas como con el método anterior.\n",
+    "\n",
+    "</div>"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "<div class=\"alert alert-block alert-success\">\n",
+    "<b>Comentario de Revisor v2</b> <a class=\"tocSkip\"></a>\n",
+    "\n",
+    "Ok, correcto, esta metodología también es válida\n",
+    "\n",
+    "</div>"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 33,
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "(171426, 10) (57142, 10)\n"
+     ]
+    }
+   ],
+   "source": [
+    "#Características y Objetivo\n",
+    "#Dividiendo el Dataset y verificando conjunto\n",
+    "X = df_new_filt_OHE.drop('price', axis=1)\n",
+    "y = df_new_filt_OHE['price']\n",
+    "\n",
+    "#entrenamiento y prueba\n",
+    "X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.25, random_state=12345)\n",
+    "\n",
+    "#verificando forma\n",
+    "print(X_train.shape, X_test.shape)"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "<div class=\"alert alert-block alert-danger\">\n",
+    "<b>Comentario de Revisor</b> <a class=\"tocSkip\"></a>\n",
+    "\n",
+    "Revisaré los modelos luego de corregir la data.\n",
+    "\n",
+    "</div>"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "#### Regresión Lineal"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 34,
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "CPU times: user 42.3 ms, sys: 24.2 ms, total: 66.4 ms\n",
+      "Wall time: 41.9 ms\n",
+      "CPU times: user 3.23 ms, sys: 8.01 ms, total: 11.2 ms\n",
+      "Wall time: 3.57 ms\n",
+      "RMSE de Regresión Lineal: 3155.4428640331175\n"
+     ]
+    }
+   ],
+   "source": [
+    "lr_model = LinearRegression()\n",
+    "%time lr_model.fit(X_train, y_train)#comando para medir tiempo de ejecución en toda la celda\n",
+    "%time lr_predict = lr_model.predict(X_test)\n",
+    "lr_rmse = mean_squared_error(y_test, lr_predict)**0.5\n",
+    "print(f'RMSE de Regresión Lineal: {lr_rmse}')"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "La regresión lineal ha devuelto un RMSE de 3155.442, siendo está la prueba de cordura y sierviendo como valor base para comparar los otros modelos y métodos de potenciación de gradiente. Necesitamos menos que lo arrojado en esta prueba de cordura."
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "<div class=\"alert alert-block alert-success\">\n",
+    "<b>Comentario de Revisor v2</b> <a class=\"tocSkip\"></a>\n",
+    "\n",
+    "Para la regresión lineal es difícil interpretar los coeficientes en este tipo de encoding, ojo que es preferible OHE pero con menos columnas (digamos sin considerar model para que no se generen demasiados columnas al aplicar el OHE).\n",
+    "\n",
+    "</div>"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "#### Árbol de Decisión\n",
+    "\n",
+    "Se empleará librería GridsearchCV para obtener lo mejores hiperparametros, luego se entrenará el modelo para finalizar con la medición del tiempo de entrenamiento y prueba según las instrucciones indicadas en el proyecto."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 35,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "#hiperparámetros de árbol de decisión\n",
+    "dt_params = {\n",
+    "    'max_depth': [1, 2, 3, 4, 5, 6] ,\n",
+    "    'min_samples_split': [2, 4, 6, 8],\n",
+    "    'min_samples_leaf': [2, 4, 6, 8],\n",
+    "}\n",
+    "\n",
+    "#GridSearchCV e hiperparámetros establecidos.\n",
+    "#Metríca y valor para validación cruzada\n",
+    "dt_grid = GridSearchCV(\n",
+    "    estimator=DecisionTreeRegressor(),\n",
+    "    param_grid=dt_params,\n",
+    "    scoring='neg_root_mean_squared_error',\n",
+    "    cv=3)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "#entrenamos para encontrar mejores hiperparametros\n",
+    "dt_grid.fit(X_train, y_train)\n",
+    "#Buscamos mejores hiperparametros que devuelven más bajo RSME\n",
+    "max_score = dt_grid.cv_results_['mean_test_score'].max()\n",
+    "index_max_score = np.where(dt_grid.cv_results_['mean_test_score'] == max_score)[0][0]\n",
+    "\n",
+    "best_set_of_params = dt_grid.cv_results_['params'][index_max_score]\n",
+    "print(f'Hiperparámetros recomendados: {best_set_of_params} | Mejor RSME: {-max_score}')"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 36,
+   "metadata": {
+    "scrolled": true
+   },
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "CPU times: user 307 ms, sys: 0 ns, total: 307 ms\n",
+      "Wall time: 305 ms\n",
+      "CPU times: user 7.42 ms, sys: 0 ns, total: 7.42 ms\n",
+      "Wall time: 7.11 ms\n",
+      "RMSE de Árbol de Decisión: 2328.080497374315\n"
+     ]
+    }
+   ],
+   "source": [
+    "#Entrenamiento de modelo\n",
+    "dt_model = DecisionTreeRegressor(random_state=12345, max_depth=6, min_samples_split=2, min_samples_leaf=2)\n",
+    "%time dt_model.fit(X_train, y_train)\n",
+    "%time dt_predict = dt_model.predict(X_test)\n",
+    "dt_rmse = mean_squared_error(y_test, dt_predict)**0.5\n",
+    "print(f'RMSE de Árbol de Decisión: {dt_rmse}')"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "Una vez ajustados los hiperparametros más óptimos según lo calculado, se observa un RSME más inferior (2328.080) respecto a la prueba de cordura (regresión lineal=3155.442), indicando que nos encontramos en buen camino para hallar el mejor modelo.\n",
+    "\n",
+    "Se tiene los siguientes tiempos:\n",
+    "- Entrenamiento: \n",
+    "    - CPU times: user 307 ms, \n",
+    "    - sys: 0 ns, \n",
+    "    - total: 307 ms\n",
+    "    - Wall time: 305 ms\n",
+    "- Predicción:\n",
+    "    - CPU times: user 7.42 ms\n",
+    "    - sys: 0 ns\n",
+    "    - total: 7.42 ms \n",
+    "    - Wall time: 7.11 ms"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "#### Bosque Aleatorio\n",
+    "\n",
+    "Al igual que 'árbol de decisión', se empleará librería GridsearchCV para obtener lo mejores hiperparametros y luego entrenar nuestro modelo."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 37,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "rf_params = {\n",
+    "    'n_estimators' : [10, 20, 40],\n",
+    "    'max_depth': [1, 2, 3, 4, 5, 6] \n",
+    "}\n",
+    "\n",
+    "rf_grid = GridSearchCV(\n",
+    "    estimator=RandomForestRegressor(),\n",
+    "    param_grid=rf_params,\n",
+    "    scoring='neg_root_mean_squared_error',\n",
+    "    cv=3)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "#entrenamos para encontrar mejores hiperparametros\n",
+    "rf_grid.fit(X_train, y_train)\n",
+    "#Buscamos mejores hiperparametros que devuelven más bajo RSME\n",
+    "max_score = rf_grid.cv_results_[\"mean_test_score\"].max()\n",
+    "index_max_score = np.where(rf_grid.cv_results_[\"mean_test_score\"] == max_score)[0][0]\n",
+    "\n",
+    "best_set_of_params = rf_grid.cv_results_[\"params\"][index_max_score]\n",
+    "\n",
+    "print(f'Hiperparámetros recomendados: {best_set_of_params} | Mejor RSME: {-max_score}')"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 38,
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "CPU times: user 4.39 s, sys: 3.34 ms, total: 4.39 s\n",
+      "Wall time: 4.39 s\n",
+      "CPU times: user 78.1 ms, sys: 0 ns, total: 78.1 ms\n",
+      "Wall time: 77.8 ms\n",
+      "RMSE de Bosque Aleatorio: 2259.878030906163\n"
+     ]
+    }
+   ],
+   "source": [
+    "#Entrenamiento de modelo\n",
+    "rf_model = RandomForestRegressor(random_state=12345, max_depth=6, n_estimators=20)\n",
+    "%time rf_model.fit(X_train, y_train)\n",
+    "%time rf_predict = rf_model.predict(X_test)\n",
+    "rf_rmse = mean_squared_error(y_test, rf_predict)**0.5\n",
+    "print(f'RMSE de Bosque Aleatorio: {rf_rmse}')"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "Una vez ajustados los hiperparametros más óptimos según lo calculado, se observa un RSME un poco más inferior (2259.878) al modelo anterior (2328.080), cumpliendo así con la mejora del mismo. Cabe acotar que, a dicho resultado se ha de considerar el tiempo de entrenamiento para nuestro modelo, pues el mismo resulto ser mucho más alto que el anterior, por lo que podría inferirse que, dada la mejora teniendo en cuenta el tiempo de entrenamiento del modelo, el mismo no resulta ser demasiado eficiente  considerando esto por su infima mejora del RSME que presenta respecto al Árbol de Regresión.\n",
+    "\n",
+    "Se tiene los siguientes tiempos:\n",
+    "- Entrenamiento: \n",
+    "    - CPU times: user 4.39 s\n",
+    "    - sys: 3.34 ms, \n",
+    "    - total: 4.39 s \n",
+    "    - Wall time: 4.39 s\n",
+    "- Predicción:\n",
+    "    - CPU times: user 78.1 ms\n",
+    "    - sys: 0 ns\n",
+    "    - total: 78.1 ms\n",
+    "    - Wall time: 77.8 ms"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "#### Catboost\n",
+    "\n",
+    "Empleando el método de potenciación de gradiente CatBoost para mejorar el modelo de aprendizaje. Este algoritmo no requiere que se preprocesen las características categóricas, por lo que no es necesario usar la variable que almacena el DataFrame encodificado OHE."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "#Características y objetivos antes de OHE\n",
+    "features = df_new_filt.drop('price', axis=1)\n",
+    "target = df_new_filt['price']\n",
+    "\n",
+    "features_train, features_test, target_train, target_test = train_test_split(features, target, test_size=0.25, random_state=12345)\n",
+    "\n",
+    "#Selecciono sólo las columnas cuyas características son categóricas\n",
+    "categorical_columns = features_train.select_dtypes(include=['object']).columns.tolist()\n",
+    "\n",
+    "#Tipo 'category'\n",
+    "for column in categorical_columns:\n",
+    "    features_train.loc[:, column] = features_train.loc[:, column].astype('category')\n",
+    "    features_test.loc[:, column] = features_test.loc[:, column].astype('category')\n",
+    "\n",
+    "#Hiperparámetros a ajustar\n",
+    "cb_params = {\n",
+    "    'depth': [4, 6, 10],\n",
+    "    'learning_rate': [0.1, 0.2, 0.5]\n",
+    "}\n",
+    "\n",
+    "#Estimador\n",
+    "cb_est = CatBoostRegressor(iterations=100, cat_features=categorical_columns, verbose=False, loss_function='RMSE')\n",
+    "\n",
+    "cb_grid = GridSearchCV(\n",
+    "    estimator=cb_est,\n",
+    "    param_grid=cb_params,\n",
+    "    scoring='neg_root_mean_squared_error',\n",
+    "    cv=3\n",
+    ")"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "cb_grid.fit(features_train, target_train)\n",
+    "\n",
+    "max_score = cb_grid.cv_results_[\"mean_test_score\"].max()\n",
+    "index_max_score = np.where(cb_grid.cv_results_[\"mean_test_score\"] == max_score)[0][0]\n",
+    "\n",
+    "best_params = cb_grid.cv_results_[\"params\"][index_max_score]\n",
+    "\n",
+    "print(f'Hiperparámetros recomendados: {best_params} | Mejor RSME: {-max_score}')"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "cb_model = CatBoostRegressor(random_state=12345, iterations=100, depth=10, learning_rate=0.5, loss_function='RMSE', cat_features=categorical_columns, verbose=False)\n",
+    "%time cb_model.fit(features_train, target_train)\n",
+    "%time cb_predict = cb_model.predict(features_test)\n",
+    "cb_rmse = mean_squared_error(target_test, cb_predict)**0.5\n",
+    "print(f'RMSE de CatBoost: {cb_rmse}')"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "Una vez ajustados los hiperparametros más óptimos según lo calculado, se observa un RSME de enorme mejora (1615.380), cumpliendo además con un tiempo de entrenamiento bastante optimo, por lo que, hasta ahora, el modelo de entrenamiento basado en catboost viene siendo el más prometedor, tanto en velocidad como en eficiencia en las predicciones.\n",
+    "\n",
+    "Se tiene los siguientes tiempos:\n",
+    "- Entrenamiento: \n",
+    "    - CPU times: user 21.7 s\n",
+    "    - sys:  47.4 ms, \n",
+    "    - total: 21.7 s \n",
+    "    - Wall time: 21.8 s\n",
+    "- Predicción:\n",
+    "    - CPU times: 85.6 ms \n",
+    "    - sys: 0 ns\n",
+    "    - total: 85.6 ms\n",
+    "    - Wall time: 85.5 ms"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "#### XGBoost\n",
+    "\n",
+    "A diferencia de CatBoost, XGBoost requiere previamente un encodificado de características, por lo que tomaremos el conjunto perteneciente a tal encodificado OHE \n",
+    "ya que sólo acepta características númericas."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 39,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "#Hiperparametros\n",
+    "xgb_params = {'max_depth': [4, 6, 8], \n",
+    "            'n_estimators': [50, 100],\n",
+    "            'learning_rate': [0.05, 0.1],\n",
+    "            'subsample': [0.6, 0.8]\n",
+    "}\n",
+    "\n",
+    "xgb_est = XGBRegressor()\n",
+    "\n",
+    "xgb_grid = GridSearchCV(estimator=xgb_est, param_grid=xgb_params, scoring='neg_root_mean_squared_error', cv=3)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 42,
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "'#Buscamos los mejores hiperparametros\\nxgb_grid.fit(X_train, y_train)\\nmax_score = xgb_grid.cv_results_[\"mean_test_score\"].max()\\nindex_max_score = np.where(xgb_grid.cv_results_[\"mean_test_score\"] == max_score)[0][0]\\n\\nbest_params = xgb_grid.cv_results_[\"params\"][index_max_score]\\n\\nprint(f\\'Hiperparámetros recomendados: {best_params} | Mejor RSME: {-max_score}\\')'"
+      ]
+     },
+     "execution_count": 42,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "\"\"\"#Buscamos los mejores hiperparametros\n",
+    "xgb_grid.fit(X_train, y_train)\n",
+    "max_score = xgb_grid.cv_results_[\"mean_test_score\"].max()\n",
+    "index_max_score = np.where(xgb_grid.cv_results_[\"mean_test_score\"] == max_score)[0][0]\n",
+    "\n",
+    "best_params = xgb_grid.cv_results_[\"params\"][index_max_score]\n",
+    "\n",
+    "print(f'Hiperparámetros recomendados: {best_params} | Mejor RSME: {-max_score}')\"\"\""
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "**NOTA**: El código anterior se ha dejado comentado debido al tiempo requerido de cálculo para hallar los hiperparmaetros más óptimos."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 40,
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "CPU times: user 39.4 s, sys: 123 ms, total: 39.5 s\n",
+      "Wall time: 39.8 s\n",
+      "CPU times: user 429 ms, sys: 0 ns, total: 429 ms\n",
+      "Wall time: 418 ms\n",
+      "RMSE de XGBoost: 1615.4275074653872\n"
+     ]
+    }
+   ],
+   "source": [
+    "#Entrenamos modelo con hiperparametros\n",
+    "xgb_model = XGBRegressor(random_state=12345, max_depth=8, n_estimators=100, learning_rate=0.1, subsample=0.8)\n",
+    "%time xgb_model.fit(X_train, y_train)\n",
+    "%time xgb_predict = xgb_model.predict(X_test)\n",
+    "xgb_rmse = mean_squared_error(y_test, xgb_predict)**0.5\n",
+    "print(f'RMSE de XGBoost: {xgb_rmse}')"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "Una vez ajustados los hiperparametros más óptimos según lo calculado, se observa un RSME bastante aceptable (1615.427) respecto a la prueba de cordura (3155.442) pero no con una mejora respecto a catboost(1615.380).\n",
+    "\n",
+    "Se obtuvo los siguientes tiempos:\n",
+    "- Entrenamiento: \n",
+    "    - CPU times: user 39.4 s\n",
+    "    - sys: 123 ms\n",
+    "    - total: 39.5 s\n",
+    "    - Wall time: 39.8 s\n",
+    "- Predicción:\n",
+    "    - CPU times: user 429 ms\n",
+    "    - sys: 0 ns\n",
+    "    - total: 429 ms\n",
+    "    - Wall time: 418 ms"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "#### LightGBM\n",
+    "\n",
+    "Al igual que CatBoost, puede emplearse sin el preprocesamiento de las características categóricas encodificadas con OHE. Además, es necesario que se transformen previamente las características a tipo int o category."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "#Igual que catboost, tomo el conjunto para antes de OHE\n",
+    "for col in categorical_columns:\n",
+    "    df_new_filt[col] = df_new_filt[col].astype('category')\n",
+    "\n",
+    "X_LGBM = df_new_filt.drop('price', axis=1)\n",
+    "y_LGBM = df_new_filt['price']\n",
+    "\n",
+    "X_LGBM_train, X_LGBM_test, y_LGBM_train, y_LGBM_test = train_test_split(X_LGBM, y_LGBM, test_size=0.25, random_state=12345)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "LGBM_params = {\n",
+    "    'n_estimators': [100, 150, 300],\n",
+    "    'learning_rate': [0.1, 0.2, 0.5],\n",
+    "    'num_leaves': [10, 20, 30],\n",
+    "    'max_depth': [5, 8, 10],\n",
+    "    'subsample': [0.6, 0.7, 0.8]\n",
+    "}\n",
+    "\n",
+    "LGBM_est = LGBMRegressor()\n",
+    "\n",
+    "LGBM_grid = GridSearchCV(\n",
+    "    estimator=LGBM_est,\n",
+    "    param_grid=LGBM_params,\n",
+    "    scoring='neg_root_mean_squared_error',\n",
+    "    cv=3  \n",
+    ")"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "#Entrenamos para hallar los mejores hiperparametros\n",
+    "\"\"\"LGBM_grid.fit(X_LGBM_train, y_LGBM_train)\n",
+    "\n",
+    "max_score = LGBM_grid.cv_results_[\"mean_test_score\"].max()\n",
+    "index_max_score = np.where(LGBM_grid.cv_results_[\"mean_test_score\"] == max_score)[0][0]\n",
+    "\n",
+    "best_params = LGBM_grid.cv_results_[\"params\"][index_max_score]\n",
+    "\n",
+    "print(f'Hiperparámetros recomendados: {best_params} | Mejor RECM: {-max_score}')\"\"\""
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "**NOTA**: El código anterior se ha dejado comentado debido al tiempo requerido de cálculo para hallar los hiperparametros más óptimos."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {
+    "scrolled": true
+   },
+   "outputs": [],
+   "source": [
+    "LGBM_model = LGBMRegressor(n_estimators=300, learning_rate=0.2, num_leaves=30, max_depth=10, subsample=0.6, random_state=12345)\n",
+    "%time LGBM_model.fit(X_LGBM_train, y_LGBM_train)\n",
+    "%time LGBM_predict = LGBM_model.predict(X_LGBM_test)\n",
+    "LGBM_rmse = mean_squared_error(y_LGBM_test, LGBM_predict)**0.5\n",
+    "print(f'RMSE de LightGBM: {LGBM_rmse}')"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "Una vez ajustados los hiperparametros más óptimos según lo calculado, se observa un RSME de enorme mejora (1575.539) respecto a la prueba de cordura (2768.90) y, naturalmente, respecto a xgboost (1637.026) y catboost(1615.380). Por lo que, LightGBM pasará a ser nuestro metodo de potenciación de gradiente escogido para construir nuestro modelo.\n",
+    "\n",
+    "Se obtuvo los siguientes tiempos:\n",
+    "- Entrenamiento: \n",
+    "    - CPU times: user 4.95 s\n",
+    "    - sys: 36.9 ms\n",
+    "    - total:  4.99 s\n",
+    "    - Wall time: 4.96 s\n",
+    "- Predicción:\n",
+    "    - CPU times:  1.52 s\n",
+    "    - sys: 0 ns\n",
+    "    - total: 1.52 s\n",
+    "    - Wall time: 1.51 s"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "<div class=\"alert alert-block alert-success\">\n",
+    "<b>Comentario de Revisor v2</b> <a class=\"tocSkip\"></a>\n",
+    "\n",
+    "Correcto, muy bien con el entrenamiento de los modelos\n",
+    "\n",
+    "</div>"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "## Análisis del modelo"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 43,
+   "metadata": {
+    "scrolled": false
+   },
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "              modelo  tiempo_ajuste_hiperparámetros  tiempo_de_entrenamiento  \\\n",
+      "0   Regresión Lineal                         0.0423                   0.0419   \n",
+      "1  Árbol de Decisión                         0.3070                   0.3050   \n",
+      "2   Bosque Aleatorio                         4.3900                   4.3900   \n",
+      "3           CatBoost                        21.8000                  21.8000   \n",
+      "4            XGBoost                        39.4000                  39.8000   \n",
+      "5           LightGBM                         4.9600                   4.9600   \n",
+      "\n",
+      "   tiempo_de_prueba         RMSE  \n",
+      "0            0.0357  3155.442864  \n",
+      "1            0.0711  2328.080497  \n",
+      "2            0.0778  2259.878031  \n",
+      "3            0.0855  1615.380390  \n",
+      "4            0.4180  1615.427507  \n",
+      "5            1.5100  1575.539383  \n"
+     ]
+    }
+   ],
+   "source": [
+    "#Ordenando resultado en un DataFrame para mejor visualización\n",
+    "data_models = {\n",
+    "    'modelo': ['Regresión Lineal', 'Árbol de Decisión', 'Bosque Aleatorio', 'CatBoost', 'XGBoost', 'LightGBM'],\n",
+    "    'tiempo_ajuste_hiperparámetros': [0.0423, 0.307, 4.39, 21.8, 39.4, 4.96],\n",
+    "    'tiempo_de_entrenamiento': [0.0419, 0.305, 4.39, 21.8, 39.8, 4.96],\n",
+    "    'tiempo_de_prueba': [0.0357, 0.0711, 0.0778, 0.0855, 0.418, 1.51],\n",
+    "    'RMSE': [3155.4428640331175, 2328.080497374315, 2259.878030906163, 1615.3803898078384, 1615.4275074653872, 1575.5393829849745]\n",
+    "}\n",
+    "\n",
+    "models_table = pd.DataFrame(data_models)\n",
+    "\n",
+    "print(models_table)"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "De lo anterior se deduce que, para el tiempo de ajustes de hiperparametros y entrenamiento, el modelo basado en XGBoost requiere más tiempo y, además, los más veloces son Árbol de Decisión y LightGBM.\n",
+    "\n",
+    "Respecto a su tiempo de predicción y RMSE, se observa que, Bosque Aleatorio y Catboost son los más veloces, mientras que LightGBM mostró la mejor precisión de todos los modelos examinados, pues el valor de este fue el más bajo. Modelo a usar: LightGBM\n",
+    "\n",
+    "En los ajustes de los hiperparametros se pueden observar, para cada uno de los modelos, diferentes de los mismos, seleccionados para ser los que directamente se ajusten para conseguir la mejor calidad en la construcción de nuestro modelo. Se probaron varios valores para la profundidad de arbol, número mínimo de muestras para dividir nodo interno y muestras requeridas para ser nodo final, además de, por supuesto, en otros modelos observarlo con varias combinaciones de número de árboles en bosque aleatorio al igual que con el hiperparametros de la tasa de aprendizaje (learning_rate), la fracción de muestra a utilizar para entrenar cada árbol y el número de hojas máximo por árbol, siempre especificando que la función de pérdida a usar es rmse. Luego se especifíco neg_root_mean_squared_error para evaluar calidad de combinaciones de hiperparametros. cv es el número de pliegues en validación cruzada. Por último, se emplea un diccionario en conjunto con una clave que proporciona el promedio en el conjunto de prueba para cada combinación de hiperparametros y encuentra el puntaje más alto, extrayendo el primer índice de la lista, encuentra el índice donde el puntaje promedio del conjunto de prueba es igual a la puntuación máxima; todo esto manteniendo coherencia con la división del conjunto de datos test_size=0.25"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "<div class=\"alert alert-block alert-success\">\n",
+    "<b>Comentario de Revisor v2</b> <a class=\"tocSkip\"></a>\n",
+    "\n",
+    "Muy bien!\n",
+    "</div>"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "# CONCLUSIÓN"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "En la primera parte, se tiene la exploración y el preprocesamiento de datos, donde se abordaron todos los detalles pertinentes al dataset antes de proceder a la evaluación y construcción de nuestro modelo de aprendizaje. Se manejaron valores duplicados y ausentes, eliminando aquellos que no pudieron rellenarse una vez creada y aplicada la función correspondiente para tal tarea. Se filtraro y transformaron los datos átipicos teniendo en cuenta el mercado al que va dirigido el modelo y el cliente que nos ha solicitado tal tarea.\n",
+    "\n",
+    "Una vez codificadas y escaladas las características, se impementaron diferentes modelos de regresión al igual que distintas formas de potenciación de gradiente para encontrar el mejor, seguido del ajuste de los hiperparámetros ayudados de GridSearchCV que nos permitió obtener las predicciones más optimas dado ciertos ajustes de los mismos, para por fin, una vez evaluados todos, llegar a la conclusión de que el modelo basado en LightGBM  es el más apropiado y optimo en la utilización de nuestro mmodelo de aprendizaje por arrojar los valores más aceptables, superando con creces a la regresión lineal, árbol de decisión y bosque aleatorio. Por lo que, LightGBM ofrece la mejor combinación en lo solicitado por Bargain (velocidad y calidad) para determinar el valor de mercado de un coche de segunda mano."
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "<div class=\"alert alert-block alert-success\">\n",
+    "<b>Comentario de Revisor v2</b> <a class=\"tocSkip\"></a>\n",
+    "\n",
+    "Bien con las conclusiones, aunque faltó incluir al menos una mención  al RMSE o tiempo del mejor modelo para indicar por qué fue considerado como el mejor.\n",
+    "</div>"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "# Lista de control"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "Escribe 'x' para verificar. Luego presiona Shift+Enter"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "- [x]  Jupyter Notebook está abierto\n",
+    "- [x]  El código no tiene errores\n",
+    "- [x]  Las celdas con el código han sido colocadas en orden de ejecución\n",
+    "- [x]  Los datos han sido descargados y preparados- [x]  Los modelos han sido entrenados\n",
+    "- [x]  Se realizó el análisis de velocidad y calidad de los modelos"
+   ]
+  }
+ ],
+ "metadata": {
+  "ExecuteTimeLog": [
+   {
+    "duration": 5301,
+    "start_time": "2024-06-22T00:53:08.666Z"
+   },
+   {
+    "duration": 1166,
+    "start_time": "2024-06-22T00:53:34.259Z"
+   },
+   {
+    "duration": 1026,
+    "start_time": "2024-06-22T00:53:53.086Z"
+   },
+   {
+    "duration": 7,
+    "start_time": "2024-06-22T00:55:12.256Z"
+   },
+   {
+    "duration": 3023,
+    "start_time": "2024-06-22T00:58:36.678Z"
+   },
+   {
+    "duration": 21,
+    "start_time": "2024-06-22T01:01:15.768Z"
+   },
+   {
+    "duration": 198,
+    "start_time": "2024-06-22T01:03:34.986Z"
+   },
+   {
+    "duration": 196,
+    "start_time": "2024-06-22T01:05:15.846Z"
+   },
+   {
+    "duration": 310,
+    "start_time": "2024-06-22T01:06:14.662Z"
+   },
+   {
+    "duration": 9,
+    "start_time": "2024-06-22T01:09:50.253Z"
+   },
+   {
+    "duration": 50,
+    "start_time": "2024-06-22T01:16:24.232Z"
+   },
+   {
+    "duration": 44,
+    "start_time": "2024-06-22T01:19:15.568Z"
+   },
+   {
+    "duration": 57,
+    "start_time": "2024-06-22T01:40:37.108Z"
+   },
+   {
+    "duration": 25,
+    "start_time": "2024-06-22T01:50:37.084Z"
+   },
+   {
+    "duration": 21,
+    "start_time": "2024-06-22T01:51:06.289Z"
+   },
+   {
+    "duration": 1754,
+    "start_time": "2024-06-22T01:51:17.403Z"
+   },
+   {
+    "duration": 998,
+    "start_time": "2024-06-22T01:51:19.161Z"
+   },
+   {
+    "duration": 7,
+    "start_time": "2024-06-22T01:51:20.162Z"
+   },
+   {
+    "duration": 3099,
+    "start_time": "2024-06-22T01:51:20.172Z"
+   },
+   {
+    "duration": 19,
+    "start_time": "2024-06-22T01:51:23.276Z"
+   },
+   {
+    "duration": 241,
+    "start_time": "2024-06-22T01:51:23.299Z"
+   },
+   {
+    "duration": 250,
+    "start_time": "2024-06-22T01:51:23.543Z"
+   },
+   {
+    "duration": 331,
+    "start_time": "2024-06-22T01:51:23.796Z"
+   },
+   {
+    "duration": 9,
+    "start_time": "2024-06-22T01:51:24.131Z"
+   },
+   {
+    "duration": 46,
+    "start_time": "2024-06-22T01:51:24.143Z"
+   },
+   {
+    "duration": 43,
+    "start_time": "2024-06-22T01:51:24.222Z"
+   },
+   {
+    "duration": 77,
+    "start_time": "2024-06-22T01:51:24.268Z"
+   },
+   {
+    "duration": 25,
+    "start_time": "2024-06-22T01:51:24.348Z"
+   },
+   {
+    "duration": 317,
+    "start_time": "2024-06-22T19:14:53.404Z"
+   },
+   {
+    "duration": 5232,
+    "start_time": "2024-06-22T19:15:03.755Z"
+   },
+   {
+    "duration": 1040,
+    "start_time": "2024-06-22T19:15:08.990Z"
+   },
+   {
+    "duration": 8,
+    "start_time": "2024-06-22T19:15:10.034Z"
+   },
+   {
+    "duration": 3084,
+    "start_time": "2024-06-22T19:15:10.045Z"
+   },
+   {
+    "duration": 20,
+    "start_time": "2024-06-22T19:15:13.132Z"
+   },
+   {
+    "duration": 223,
+    "start_time": "2024-06-22T19:15:13.157Z"
+   },
+   {
+    "duration": 230,
+    "start_time": "2024-06-22T19:15:13.384Z"
+   },
+   {
+    "duration": 335,
+    "start_time": "2024-06-22T19:15:13.618Z"
+   },
+   {
+    "duration": 9,
+    "start_time": "2024-06-22T19:15:13.957Z"
+   },
+   {
+    "duration": 67,
+    "start_time": "2024-06-22T19:15:13.968Z"
+   },
+   {
+    "duration": 44,
+    "start_time": "2024-06-22T19:15:14.038Z"
+   },
+   {
+    "duration": 74,
+    "start_time": "2024-06-22T19:15:14.085Z"
+   },
+   {
+    "duration": 45,
+    "start_time": "2024-06-22T19:15:14.161Z"
+   },
+   {
+    "duration": 47,
+    "start_time": "2024-06-22T19:15:14.208Z"
+   },
+   {
+    "duration": 6,
+    "start_time": "2024-06-22T19:45:41.037Z"
+   },
+   {
+    "duration": 7209,
+    "start_time": "2024-06-22T20:39:06.424Z"
+   },
+   {
+    "duration": 6931,
+    "start_time": "2024-06-22T20:43:11.688Z"
+   },
+   {
+    "duration": 6920,
+    "start_time": "2024-06-22T20:43:36.981Z"
+   },
+   {
+    "duration": 6927,
+    "start_time": "2024-06-22T20:45:37.302Z"
+   },
+   {
+    "duration": 4,
+    "start_time": "2024-06-22T21:08:17.712Z"
+   },
+   {
+    "duration": 7012,
+    "start_time": "2024-06-22T21:08:22.535Z"
+   },
+   {
+    "duration": 6980,
+    "start_time": "2024-06-22T21:08:34.673Z"
+   },
+   {
+    "duration": 6,
+    "start_time": "2024-06-22T21:13:32.190Z"
+   },
+   {
+    "duration": 1710,
+    "start_time": "2024-06-22T21:13:46.687Z"
+   },
+   {
+    "duration": 964,
+    "start_time": "2024-06-22T21:13:48.405Z"
+   },
+   {
+    "duration": 7,
+    "start_time": "2024-06-22T21:13:49.372Z"
+   },
+   {
+    "duration": 2984,
+    "start_time": "2024-06-22T21:13:49.385Z"
+   },
+   {
+    "duration": 37,
+    "start_time": "2024-06-22T21:13:52.373Z"
+   },
+   {
+    "duration": 221,
+    "start_time": "2024-06-22T21:13:52.415Z"
+   },
+   {
+    "duration": 207,
+    "start_time": "2024-06-22T21:13:52.639Z"
+   },
+   {
+    "duration": 315,
+    "start_time": "2024-06-22T21:13:52.849Z"
+   },
+   {
+    "duration": 10,
+    "start_time": "2024-06-22T21:13:53.167Z"
+   },
+   {
+    "duration": 68,
+    "start_time": "2024-06-22T21:13:53.182Z"
+   },
+   {
+    "duration": 65,
+    "start_time": "2024-06-22T21:13:53.254Z"
+   },
+   {
+    "duration": 59,
+    "start_time": "2024-06-22T21:13:53.323Z"
+   },
+   {
+    "duration": 41,
+    "start_time": "2024-06-22T21:13:53.385Z"
+   },
+   {
+    "duration": 49,
+    "start_time": "2024-06-22T21:13:53.428Z"
+   },
+   {
+    "duration": 29,
+    "start_time": "2024-06-22T21:13:53.480Z"
+   },
+   {
+    "duration": 7030,
+    "start_time": "2024-06-22T21:13:53.513Z"
+   },
+   {
+    "duration": 6860,
+    "start_time": "2024-06-22T21:14:00.556Z"
+   },
+   {
+    "duration": 7188,
+    "start_time": "2024-06-22T21:29:49.176Z"
+   },
+   {
+    "duration": 5382,
+    "start_time": "2024-06-22T21:44:52.349Z"
+   },
+   {
+    "duration": 7247,
+    "start_time": "2024-06-22T21:45:07.467Z"
+   },
+   {
+    "duration": 1669,
+    "start_time": "2024-06-22T21:47:05.895Z"
+   },
+   {
+    "duration": 993,
+    "start_time": "2024-06-22T21:47:07.567Z"
+   },
+   {
+    "duration": 6,
+    "start_time": "2024-06-22T21:47:08.565Z"
+   },
+   {
+    "duration": 3144,
+    "start_time": "2024-06-22T21:47:08.575Z"
+   },
+   {
+    "duration": 19,
+    "start_time": "2024-06-22T21:47:11.724Z"
+   },
+   {
+    "duration": 229,
+    "start_time": "2024-06-22T21:47:11.746Z"
+   },
+   {
+    "duration": 217,
+    "start_time": "2024-06-22T21:47:11.978Z"
+   },
+   {
+    "duration": 323,
+    "start_time": "2024-06-22T21:47:12.198Z"
+   },
+   {
+    "duration": 9,
+    "start_time": "2024-06-22T21:47:12.524Z"
+   },
+   {
+    "duration": 70,
+    "start_time": "2024-06-22T21:47:12.536Z"
+   },
+   {
+    "duration": 44,
+    "start_time": "2024-06-22T21:47:12.609Z"
+   },
+   {
+    "duration": 77,
+    "start_time": "2024-06-22T21:47:12.656Z"
+   },
+   {
+    "duration": 24,
+    "start_time": "2024-06-22T21:47:12.736Z"
+   },
+   {
+    "duration": 68,
+    "start_time": "2024-06-22T21:47:12.765Z"
+   },
+   {
+    "duration": 4,
+    "start_time": "2024-06-22T21:47:12.836Z"
+   },
+   {
+    "duration": 6962,
+    "start_time": "2024-06-22T21:47:12.844Z"
+   },
+   {
+    "duration": 6889,
+    "start_time": "2024-06-22T21:47:19.809Z"
+   },
+   {
+    "duration": 5470,
+    "start_time": "2024-06-22T21:47:26.705Z"
+   },
+   {
+    "duration": 7306,
+    "start_time": "2024-06-22T21:47:32.177Z"
+   },
+   {
+    "duration": 10,
+    "start_time": "2024-06-22T22:51:17.615Z"
+   },
+   {
+    "duration": 65,
+    "start_time": "2024-06-22T22:51:55.688Z"
+   },
+   {
+    "duration": 625,
+    "start_time": "2024-06-22T22:53:32.882Z"
+   },
+   {
+    "duration": 5370,
+    "start_time": "2024-06-23T04:06:07.342Z"
+   },
+   {
+    "duration": 1020,
+    "start_time": "2024-06-23T04:06:12.716Z"
+   },
+   {
+    "duration": 9,
+    "start_time": "2024-06-23T04:06:13.740Z"
+   },
+   {
+    "duration": 3068,
+    "start_time": "2024-06-23T04:06:13.756Z"
+   },
+   {
+    "duration": 4,
+    "start_time": "2024-06-23T04:06:16.827Z"
+   },
+   {
+    "duration": 513,
+    "start_time": "2024-06-23T04:06:16.834Z"
+   },
+   {
+    "duration": 0,
+    "start_time": "2024-06-23T04:06:17.350Z"
+   },
+   {
+    "duration": 0,
+    "start_time": "2024-06-23T04:06:17.352Z"
+   },
+   {
+    "duration": 0,
+    "start_time": "2024-06-23T04:06:17.355Z"
+   },
+   {
+    "duration": 0,
+    "start_time": "2024-06-23T04:06:17.356Z"
+   },
+   {
+    "duration": 0,
+    "start_time": "2024-06-23T04:06:17.363Z"
+   },
+   {
+    "duration": 0,
+    "start_time": "2024-06-23T04:06:17.365Z"
+   },
+   {
+    "duration": 0,
+    "start_time": "2024-06-23T04:06:17.369Z"
+   },
+   {
+    "duration": 0,
+    "start_time": "2024-06-23T04:06:17.371Z"
+   },
+   {
+    "duration": 0,
+    "start_time": "2024-06-23T04:06:17.372Z"
+   },
+   {
+    "duration": 0,
+    "start_time": "2024-06-23T04:06:17.375Z"
+   },
+   {
+    "duration": 0,
+    "start_time": "2024-06-23T04:06:17.376Z"
+   },
+   {
+    "duration": 0,
+    "start_time": "2024-06-23T04:06:17.378Z"
+   },
+   {
+    "duration": 0,
+    "start_time": "2024-06-23T04:06:17.380Z"
+   },
+   {
+    "duration": 0,
+    "start_time": "2024-06-23T04:06:17.381Z"
+   },
+   {
+    "duration": 1733,
+    "start_time": "2024-06-23T04:07:07.226Z"
+   },
+   {
+    "duration": 991,
+    "start_time": "2024-06-23T04:07:08.963Z"
+   },
+   {
+    "duration": 8,
+    "start_time": "2024-06-23T04:07:09.957Z"
+   },
+   {
+    "duration": 3054,
+    "start_time": "2024-06-23T04:07:09.969Z"
+   },
+   {
+    "duration": 4,
+    "start_time": "2024-06-23T04:07:13.026Z"
+   },
+   {
+    "duration": 301,
+    "start_time": "2024-06-23T04:07:13.034Z"
+   },
+   {
+    "duration": 290,
+    "start_time": "2024-06-23T04:07:13.338Z"
+   },
+   {
+    "duration": 510,
+    "start_time": "2024-06-23T04:07:13.631Z"
+   },
+   {
+    "duration": 11,
+    "start_time": "2024-06-23T04:07:14.144Z"
+   },
+   {
+    "duration": 86,
+    "start_time": "2024-06-23T04:07:14.161Z"
+   },
+   {
+    "duration": 55,
+    "start_time": "2024-06-23T04:07:14.251Z"
+   },
+   {
+    "duration": 68,
+    "start_time": "2024-06-23T04:07:14.324Z"
+   },
+   {
+    "duration": 43,
+    "start_time": "2024-06-23T04:07:14.395Z"
+   },
+   {
+    "duration": 55,
+    "start_time": "2024-06-23T04:07:14.442Z"
+   },
+   {
+    "duration": 24,
+    "start_time": "2024-06-23T04:07:14.500Z"
+   },
+   {
+    "duration": 13158,
+    "start_time": "2024-06-23T04:07:14.527Z"
+   },
+   {
+    "duration": 12859,
+    "start_time": "2024-06-23T04:07:27.690Z"
+   },
+   {
+    "duration": 10728,
+    "start_time": "2024-06-23T04:07:40.552Z"
+   },
+   {
+    "duration": 12856,
+    "start_time": "2024-06-23T04:07:51.283Z"
+   },
+   {
+    "duration": 1901,
+    "start_time": "2024-06-23T04:08:04.142Z"
+   },
+   {
+    "duration": 6,
+    "start_time": "2024-06-23T04:10:04.614Z"
+   },
+   {
+    "duration": 819,
+    "start_time": "2024-06-23T04:11:06.703Z"
+   },
+   {
+    "duration": 272,
+    "start_time": "2024-06-23T04:12:55.600Z"
+   },
+   {
+    "duration": 279,
+    "start_time": "2024-06-23T04:17:36.581Z"
+   },
+   {
+    "duration": 399,
+    "start_time": "2024-06-23T04:18:38.683Z"
+   },
+   {
+    "duration": 396,
+    "start_time": "2024-06-23T04:19:11.191Z"
+   },
+   {
+    "duration": 1687,
+    "start_time": "2024-06-23T04:21:22.799Z"
+   },
+   {
+    "duration": 967,
+    "start_time": "2024-06-23T04:21:24.489Z"
+   },
+   {
+    "duration": 7,
+    "start_time": "2024-06-23T04:21:25.460Z"
+   },
+   {
+    "duration": 3080,
+    "start_time": "2024-06-23T04:21:25.471Z"
+   },
+   {
+    "duration": 20,
+    "start_time": "2024-06-23T04:21:28.555Z"
+   },
+   {
+    "duration": 229,
+    "start_time": "2024-06-23T04:21:28.577Z"
+   },
+   {
+    "duration": 242,
+    "start_time": "2024-06-23T04:21:28.809Z"
+   },
+   {
+    "duration": 338,
+    "start_time": "2024-06-23T04:21:29.055Z"
+   },
+   {
+    "duration": 9,
+    "start_time": "2024-06-23T04:21:29.396Z"
+   },
+   {
+    "duration": 42,
+    "start_time": "2024-06-23T04:21:29.426Z"
+   },
+   {
+    "duration": 64,
+    "start_time": "2024-06-23T04:21:29.472Z"
+   },
+   {
+    "duration": 57,
+    "start_time": "2024-06-23T04:21:29.539Z"
+   },
+   {
+    "duration": 45,
+    "start_time": "2024-06-23T04:21:29.599Z"
+   },
+   {
+    "duration": 53,
+    "start_time": "2024-06-23T04:21:29.648Z"
+   },
+   {
+    "duration": 6,
+    "start_time": "2024-06-23T04:21:29.724Z"
+   },
+   {
+    "duration": 7015,
+    "start_time": "2024-06-23T04:21:29.733Z"
+   },
+   {
+    "duration": 6947,
+    "start_time": "2024-06-23T04:21:36.751Z"
+   },
+   {
+    "duration": 5440,
+    "start_time": "2024-06-23T04:21:43.702Z"
+   },
+   {
+    "duration": 7436,
+    "start_time": "2024-06-23T04:21:49.146Z"
+   },
+   {
+    "duration": 34,
+    "start_time": "2024-06-23T04:22:43.146Z"
+   },
+   {
+    "duration": 1260,
+    "start_time": "2024-06-23T04:22:54.659Z"
+   },
+   {
+    "duration": 1074,
+    "start_time": "2024-06-23T04:24:22.264Z"
+   },
+   {
+    "duration": 7,
+    "start_time": "2024-06-23T04:25:01.457Z"
+   },
+   {
+    "duration": 330,
+    "start_time": "2024-06-23T04:25:07.494Z"
+   },
+   {
+    "duration": 1700,
+    "start_time": "2024-06-23T04:25:18.519Z"
+   },
+   {
+    "duration": 999,
+    "start_time": "2024-06-23T04:25:20.225Z"
+   },
+   {
+    "duration": 7,
+    "start_time": "2024-06-23T04:25:21.227Z"
+   },
+   {
+    "duration": 3206,
+    "start_time": "2024-06-23T04:25:21.237Z"
+   },
+   {
+    "duration": 7,
+    "start_time": "2024-06-23T04:25:24.448Z"
+   },
+   {
+    "duration": 384,
+    "start_time": "2024-06-23T04:25:24.462Z"
+   },
+   {
+    "duration": 323,
+    "start_time": "2024-06-23T04:25:24.852Z"
+   },
+   {
+    "duration": 561,
+    "start_time": "2024-06-23T04:25:25.179Z"
+   },
+   {
+    "duration": 10,
+    "start_time": "2024-06-23T04:25:25.745Z"
+   },
+   {
+    "duration": 76,
+    "start_time": "2024-06-23T04:25:25.758Z"
+   },
+   {
+    "duration": 53,
+    "start_time": "2024-06-23T04:25:25.837Z"
+   },
+   {
+    "duration": 89,
+    "start_time": "2024-06-23T04:25:25.893Z"
+   },
+   {
+    "duration": 39,
+    "start_time": "2024-06-23T04:25:25.984Z"
+   },
+   {
+    "duration": 56,
+    "start_time": "2024-06-23T04:25:26.029Z"
+   },
+   {
+    "duration": 6,
+    "start_time": "2024-06-23T04:25:26.090Z"
+   },
+   {
+    "duration": 12838,
+    "start_time": "2024-06-23T04:25:26.101Z"
+   },
+   {
+    "duration": 12525,
+    "start_time": "2024-06-23T04:25:38.942Z"
+   },
+   {
+    "duration": 11116,
+    "start_time": "2024-06-23T04:25:51.470Z"
+   },
+   {
+    "duration": 13176,
+    "start_time": "2024-06-23T04:26:02.590Z"
+   },
+   {
+    "duration": 1295,
+    "start_time": "2024-06-23T04:26:15.769Z"
+   },
+   {
+    "duration": 0,
+    "start_time": "2024-06-23T04:26:17.067Z"
+   },
+   {
+    "duration": 546,
+    "start_time": "2024-06-23T04:26:35.027Z"
+   },
+   {
+    "duration": 2127,
+    "start_time": "2024-06-23T04:29:58.839Z"
+   },
+   {
+    "duration": 1873,
+    "start_time": "2024-06-23T04:33:31.124Z"
+   },
+   {
+    "duration": 12,
+    "start_time": "2024-06-23T04:39:27.975Z"
+   },
+   {
+    "duration": 54,
+    "start_time": "2024-06-23T04:40:53.758Z"
+   },
+   {
+    "duration": 47,
+    "start_time": "2024-06-23T04:41:07.906Z"
+   },
+   {
+    "duration": 1657,
+    "start_time": "2024-06-23T04:41:28.157Z"
+   },
+   {
+    "duration": 986,
+    "start_time": "2024-06-23T04:41:29.817Z"
+   },
+   {
+    "duration": 7,
+    "start_time": "2024-06-23T04:41:30.806Z"
+   },
+   {
+    "duration": 3157,
+    "start_time": "2024-06-23T04:41:30.826Z"
+   },
+   {
+    "duration": 6,
+    "start_time": "2024-06-23T04:41:33.985Z"
+   },
+   {
+    "duration": 304,
+    "start_time": "2024-06-23T04:41:33.994Z"
+   },
+   {
+    "duration": 293,
+    "start_time": "2024-06-23T04:41:34.301Z"
+   },
+   {
+    "duration": 512,
+    "start_time": "2024-06-23T04:41:34.597Z"
+   },
+   {
+    "duration": 17,
+    "start_time": "2024-06-23T04:41:35.112Z"
+   },
+   {
+    "duration": 58,
+    "start_time": "2024-06-23T04:41:35.135Z"
+   },
+   {
+    "duration": 82,
+    "start_time": "2024-06-23T04:41:35.196Z"
+   },
+   {
+    "duration": 83,
+    "start_time": "2024-06-23T04:41:35.281Z"
+   },
+   {
+    "duration": 26,
+    "start_time": "2024-06-23T04:41:35.367Z"
+   },
+   {
+    "duration": 77,
+    "start_time": "2024-06-23T04:41:35.396Z"
+   },
+   {
+    "duration": 6,
+    "start_time": "2024-06-23T04:41:35.476Z"
+   },
+   {
+    "duration": 12472,
+    "start_time": "2024-06-23T04:41:35.485Z"
+   },
+   {
+    "duration": 12712,
+    "start_time": "2024-06-23T04:41:47.961Z"
+   },
+   {
+    "duration": 10727,
+    "start_time": "2024-06-23T04:42:00.678Z"
+   },
+   {
+    "duration": 12808,
+    "start_time": "2024-06-23T04:42:11.407Z"
+   },
+   {
+    "duration": 3,
+    "start_time": "2024-06-23T04:42:24.223Z"
+   },
+   {
+    "duration": 79,
+    "start_time": "2024-06-23T04:46:51.005Z"
+   },
+   {
+    "duration": 74,
+    "start_time": "2024-06-23T04:48:01.576Z"
+   },
+   {
+    "duration": 71,
+    "start_time": "2024-06-23T04:50:55.625Z"
+   },
+   {
+    "duration": 69,
+    "start_time": "2024-06-23T04:51:52.414Z"
+   },
+   {
+    "duration": 84,
+    "start_time": "2024-06-23T04:53:35.773Z"
+   },
+   {
+    "duration": 1640,
+    "start_time": "2024-06-23T04:58:58.786Z"
+   },
+   {
+    "duration": 1001,
+    "start_time": "2024-06-23T04:59:00.431Z"
+   },
+   {
+    "duration": 7,
+    "start_time": "2024-06-23T04:59:01.435Z"
+   },
+   {
+    "duration": 3135,
+    "start_time": "2024-06-23T04:59:01.448Z"
+   },
+   {
+    "duration": 5,
+    "start_time": "2024-06-23T04:59:04.586Z"
+   },
+   {
+    "duration": 305,
+    "start_time": "2024-06-23T04:59:04.594Z"
+   },
+   {
+    "duration": 286,
+    "start_time": "2024-06-23T04:59:04.902Z"
+   },
+   {
+    "duration": 503,
+    "start_time": "2024-06-23T04:59:05.191Z"
+   },
+   {
+    "duration": 26,
+    "start_time": "2024-06-23T04:59:05.697Z"
+   },
+   {
+    "duration": 57,
+    "start_time": "2024-06-23T04:59:05.730Z"
+   },
+   {
+    "duration": 79,
+    "start_time": "2024-06-23T04:59:05.790Z"
+   },
+   {
+    "duration": 81,
+    "start_time": "2024-06-23T04:59:05.872Z"
+   },
+   {
+    "duration": 27,
+    "start_time": "2024-06-23T04:59:05.956Z"
+   },
+   {
+    "duration": 74,
+    "start_time": "2024-06-23T04:59:05.986Z"
+   },
+   {
+    "duration": 7,
+    "start_time": "2024-06-23T04:59:06.063Z"
+   },
+   {
+    "duration": 12106,
+    "start_time": "2024-06-23T04:59:06.073Z"
+   },
+   {
+    "duration": 89,
+    "start_time": "2024-06-23T04:59:18.182Z"
+   },
+   {
+    "duration": 11924,
+    "start_time": "2024-06-23T04:59:18.274Z"
+   },
+   {
+    "duration": 84,
+    "start_time": "2024-06-23T04:59:30.201Z"
+   },
+   {
+    "duration": 1699,
+    "start_time": "2024-06-23T04:59:41.108Z"
+   },
+   {
+    "duration": 1005,
+    "start_time": "2024-06-23T04:59:42.810Z"
+   },
+   {
+    "duration": 8,
+    "start_time": "2024-06-23T04:59:43.824Z"
+   },
+   {
+    "duration": 3326,
+    "start_time": "2024-06-23T04:59:43.837Z"
+   },
+   {
+    "duration": 21,
+    "start_time": "2024-06-23T04:59:47.166Z"
+   },
+   {
+    "duration": 251,
+    "start_time": "2024-06-23T04:59:47.191Z"
+   },
+   {
+    "duration": 225,
+    "start_time": "2024-06-23T04:59:47.446Z"
+   },
+   {
+    "duration": 340,
+    "start_time": "2024-06-23T04:59:47.675Z"
+   },
+   {
+    "duration": 9,
+    "start_time": "2024-06-23T04:59:48.018Z"
+   },
+   {
+    "duration": 50,
+    "start_time": "2024-06-23T04:59:48.035Z"
+   },
+   {
+    "duration": 69,
+    "start_time": "2024-06-23T04:59:48.088Z"
+   },
+   {
+    "duration": 69,
+    "start_time": "2024-06-23T04:59:48.159Z"
+   },
+   {
+    "duration": 24,
+    "start_time": "2024-06-23T04:59:48.231Z"
+   },
+   {
+    "duration": 77,
+    "start_time": "2024-06-23T04:59:48.259Z"
+   },
+   {
+    "duration": 11,
+    "start_time": "2024-06-23T04:59:48.340Z"
+   },
+   {
+    "duration": 7126,
+    "start_time": "2024-06-23T04:59:48.354Z"
+   },
+   {
+    "duration": 78,
+    "start_time": "2024-06-23T04:59:55.484Z"
+   },
+   {
+    "duration": 7022,
+    "start_time": "2024-06-23T04:59:55.567Z"
+   },
+   {
+    "duration": 76,
+    "start_time": "2024-06-23T05:00:02.591Z"
+   },
+   {
+    "duration": 5491,
+    "start_time": "2024-06-23T05:00:02.671Z"
+   },
+   {
+    "duration": 87,
+    "start_time": "2024-06-23T05:00:08.166Z"
+   },
+   {
+    "duration": 7247,
+    "start_time": "2024-06-23T05:00:08.255Z"
+   },
+   {
+    "duration": 74,
+    "start_time": "2024-06-23T05:00:15.505Z"
+   },
+   {
+    "duration": 3,
+    "start_time": "2024-06-23T05:00:15.583Z"
+   },
+   {
+    "duration": 632,
+    "start_time": "2024-06-23T05:15:41.677Z"
+   },
+   {
+    "duration": 5157,
+    "start_time": "2024-06-23T05:19:54.896Z"
+   },
+   {
+    "duration": 5193,
+    "start_time": "2024-06-23T05:20:59.502Z"
+   },
+   {
+    "duration": 5182,
+    "start_time": "2024-06-23T05:21:14.390Z"
+   },
+   {
+    "duration": 5079,
+    "start_time": "2024-06-23T05:23:54.725Z"
+   },
+   {
+    "duration": 5135,
+    "start_time": "2024-06-23T05:26:03.434Z"
+   },
+   {
+    "duration": 5210,
+    "start_time": "2024-06-23T05:27:07.820Z"
+   },
+   {
+    "duration": 36,
+    "start_time": "2024-06-23T05:27:54.044Z"
+   },
+   {
+    "duration": 69,
+    "start_time": "2024-06-23T05:28:23.842Z"
+   },
+   {
+    "duration": 1369,
+    "start_time": "2024-06-23T05:29:13.322Z"
+   },
+   {
+    "duration": 135,
+    "start_time": "2024-06-23T05:31:00.689Z"
+   },
+   {
+    "duration": 1408,
+    "start_time": "2024-06-23T05:32:03.542Z"
+   },
+   {
+    "duration": 5,
+    "start_time": "2024-06-23T05:32:40.191Z"
+   },
+   {
+    "duration": 1659,
+    "start_time": "2024-06-23T05:32:49.171Z"
+   },
+   {
+    "duration": 973,
+    "start_time": "2024-06-23T05:32:50.834Z"
+   },
+   {
+    "duration": 14,
+    "start_time": "2024-06-23T05:32:51.810Z"
+   },
+   {
+    "duration": 3059,
+    "start_time": "2024-06-23T05:32:51.830Z"
+   },
+   {
+    "duration": 5,
+    "start_time": "2024-06-23T05:32:54.892Z"
+   },
+   {
+    "duration": 300,
+    "start_time": "2024-06-23T05:32:54.900Z"
+   },
+   {
+    "duration": 300,
+    "start_time": "2024-06-23T05:32:55.204Z"
+   },
+   {
+    "duration": 497,
+    "start_time": "2024-06-23T05:32:55.507Z"
+   },
+   {
+    "duration": 17,
+    "start_time": "2024-06-23T05:32:56.007Z"
+   },
+   {
+    "duration": 54,
+    "start_time": "2024-06-23T05:32:56.031Z"
+   },
+   {
+    "duration": 83,
+    "start_time": "2024-06-23T05:32:56.088Z"
+   },
+   {
+    "duration": 86,
+    "start_time": "2024-06-23T05:32:56.174Z"
+   },
+   {
+    "duration": 27,
+    "start_time": "2024-06-23T05:32:56.263Z"
+   },
+   {
+    "duration": 77,
+    "start_time": "2024-06-23T05:32:56.293Z"
+   },
+   {
+    "duration": 4,
+    "start_time": "2024-06-23T05:32:56.373Z"
+   },
+   {
+    "duration": 12210,
+    "start_time": "2024-06-23T05:32:56.380Z"
+   },
+   {
+    "duration": 82,
+    "start_time": "2024-06-23T05:33:08.593Z"
+   },
+   {
+    "duration": 12149,
+    "start_time": "2024-06-23T05:33:08.679Z"
+   },
+   {
+    "duration": 94,
+    "start_time": "2024-06-23T05:33:20.832Z"
+   },
+   {
+    "duration": 10336,
+    "start_time": "2024-06-23T05:33:20.929Z"
+   },
+   {
+    "duration": 93,
+    "start_time": "2024-06-23T05:33:31.268Z"
+   },
+   {
+    "duration": 12194,
+    "start_time": "2024-06-23T05:33:31.364Z"
+   },
+   {
+    "duration": 84,
+    "start_time": "2024-06-23T05:33:43.561Z"
+   },
+   {
+    "duration": 10106,
+    "start_time": "2024-06-23T05:33:43.648Z"
+   },
+   {
+    "duration": 44,
+    "start_time": "2024-06-23T05:33:53.760Z"
+   },
+   {
+    "duration": 2369,
+    "start_time": "2024-06-23T05:33:53.808Z"
+   },
+   {
+    "duration": 0,
+    "start_time": "2024-06-23T05:33:56.181Z"
+   },
+   {
+    "duration": 16,
+    "start_time": "2024-06-23T05:34:31.238Z"
+   },
+   {
+    "duration": 1680,
+    "start_time": "2024-06-23T05:34:39.183Z"
+   },
+   {
+    "duration": 1000,
+    "start_time": "2024-06-23T05:34:40.867Z"
+   },
+   {
+    "duration": 7,
+    "start_time": "2024-06-23T05:34:41.870Z"
+   },
+   {
+    "duration": 3054,
+    "start_time": "2024-06-23T05:34:41.881Z"
+   },
+   {
+    "duration": 22,
+    "start_time": "2024-06-23T05:34:44.938Z"
+   },
+   {
+    "duration": 229,
+    "start_time": "2024-06-23T05:34:44.962Z"
+   },
+   {
+    "duration": 218,
+    "start_time": "2024-06-23T05:34:45.194Z"
+   },
+   {
+    "duration": 348,
+    "start_time": "2024-06-23T05:34:45.425Z"
+   },
+   {
+    "duration": 9,
+    "start_time": "2024-06-23T05:34:45.777Z"
+   },
+   {
+    "duration": 68,
+    "start_time": "2024-06-23T05:34:45.793Z"
+   },
+   {
+    "duration": 59,
+    "start_time": "2024-06-23T05:34:45.864Z"
+   },
+   {
+    "duration": 60,
+    "start_time": "2024-06-23T05:34:45.925Z"
+   },
+   {
+    "duration": 44,
+    "start_time": "2024-06-23T05:34:45.988Z"
+   },
+   {
+    "duration": 47,
+    "start_time": "2024-06-23T05:34:46.035Z"
+   },
+   {
+    "duration": 5,
+    "start_time": "2024-06-23T05:34:46.085Z"
+   },
+   {
+    "duration": 6951,
+    "start_time": "2024-06-23T05:34:46.124Z"
+   },
+   {
+    "duration": 82,
+    "start_time": "2024-06-23T05:34:53.078Z"
+   },
+   {
+    "duration": 6760,
+    "start_time": "2024-06-23T05:34:53.163Z"
+   },
+   {
+    "duration": 65,
+    "start_time": "2024-06-23T05:34:59.927Z"
+   },
+   {
+    "duration": 5367,
+    "start_time": "2024-06-23T05:34:59.995Z"
+   },
+   {
+    "duration": 74,
+    "start_time": "2024-06-23T05:35:05.365Z"
+   },
+   {
+    "duration": 7004,
+    "start_time": "2024-06-23T05:35:05.441Z"
+   },
+   {
+    "duration": 74,
+    "start_time": "2024-06-23T05:35:12.449Z"
+   },
+   {
+    "duration": 5037,
+    "start_time": "2024-06-23T05:35:12.526Z"
+   },
+   {
+    "duration": 37,
+    "start_time": "2024-06-23T05:35:17.567Z"
+   },
+   {
+    "duration": 17,
+    "start_time": "2024-06-23T05:35:17.607Z"
+   },
+   {
+    "duration": 127,
+    "start_time": "2024-06-23T05:36:41.025Z"
+   },
+   {
+    "duration": 65,
+    "start_time": "2024-06-23T05:37:09.579Z"
+   },
+   {
+    "duration": 67,
+    "start_time": "2024-06-23T05:39:51.920Z"
+   },
+   {
+    "duration": 36,
+    "start_time": "2024-06-23T05:40:53.102Z"
+   },
+   {
+    "duration": 30,
+    "start_time": "2024-06-23T05:53:52.475Z"
+   },
+   {
+    "duration": 89,
+    "start_time": "2024-06-23T05:54:28.967Z"
+   },
+   {
+    "duration": 40,
+    "start_time": "2024-06-23T05:54:45.980Z"
+   },
+   {
+    "duration": 1679,
+    "start_time": "2024-06-23T05:56:32.888Z"
+   },
+   {
+    "duration": 970,
+    "start_time": "2024-06-23T05:56:34.570Z"
+   },
+   {
+    "duration": 7,
+    "start_time": "2024-06-23T05:56:35.543Z"
+   },
+   {
+    "duration": 3028,
+    "start_time": "2024-06-23T05:56:35.554Z"
+   },
+   {
+    "duration": 21,
+    "start_time": "2024-06-23T05:56:38.585Z"
+   },
+   {
+    "duration": 215,
+    "start_time": "2024-06-23T05:56:38.624Z"
+   },
+   {
+    "duration": 205,
+    "start_time": "2024-06-23T05:56:38.842Z"
+   },
+   {
+    "duration": 328,
+    "start_time": "2024-06-23T05:56:39.050Z"
+   },
+   {
+    "duration": 10,
+    "start_time": "2024-06-23T05:56:39.381Z"
+   },
+   {
+    "duration": 67,
+    "start_time": "2024-06-23T05:56:39.397Z"
+   },
+   {
+    "duration": 60,
+    "start_time": "2024-06-23T05:56:39.467Z"
+   },
+   {
+    "duration": 57,
+    "start_time": "2024-06-23T05:56:39.530Z"
+   },
+   {
+    "duration": 48,
+    "start_time": "2024-06-23T05:56:39.590Z"
+   },
+   {
+    "duration": 53,
+    "start_time": "2024-06-23T05:56:39.641Z"
+   },
+   {
+    "duration": 9,
+    "start_time": "2024-06-23T05:56:39.698Z"
+   },
+   {
+    "duration": 6872,
+    "start_time": "2024-06-23T05:56:39.723Z"
+   },
+   {
+    "duration": 79,
+    "start_time": "2024-06-23T05:56:46.598Z"
+   },
+   {
+    "duration": 6779,
+    "start_time": "2024-06-23T05:56:46.681Z"
+   },
+   {
+    "duration": 76,
+    "start_time": "2024-06-23T05:56:53.463Z"
+   },
+   {
+    "duration": 5265,
+    "start_time": "2024-06-23T05:56:53.543Z"
+   },
+   {
+    "duration": 71,
+    "start_time": "2024-06-23T05:56:58.811Z"
+   },
+   {
+    "duration": 7023,
+    "start_time": "2024-06-23T05:56:58.885Z"
+   },
+   {
+    "duration": 69,
+    "start_time": "2024-06-23T05:57:05.911Z"
+   },
+   {
+    "duration": 5102,
+    "start_time": "2024-06-23T05:57:05.983Z"
+   },
+   {
+    "duration": 49,
+    "start_time": "2024-06-23T05:57:11.087Z"
+   },
+   {
+    "duration": 123,
+    "start_time": "2024-06-23T05:57:11.139Z"
+   },
+   {
+    "duration": 79,
+    "start_time": "2024-06-23T05:57:11.265Z"
+   },
+   {
+    "duration": 36,
+    "start_time": "2024-06-23T05:57:11.351Z"
+   },
+   {
+    "duration": 66,
+    "start_time": "2024-06-23T05:57:11.390Z"
+   },
+   {
+    "duration": 4,
+    "start_time": "2024-06-23T05:57:11.458Z"
+   },
+   {
+    "duration": 5296,
+    "start_time": "2024-06-23T18:50:57.849Z"
+   },
+   {
+    "duration": 1068,
+    "start_time": "2024-06-23T18:51:03.149Z"
+   },
+   {
+    "duration": 7,
+    "start_time": "2024-06-23T18:51:04.230Z"
+   },
+   {
+    "duration": 3001,
+    "start_time": "2024-06-23T18:51:04.241Z"
+   },
+   {
+    "duration": 20,
+    "start_time": "2024-06-23T18:51:07.247Z"
+   },
+   {
+    "duration": 223,
+    "start_time": "2024-06-23T18:51:07.269Z"
+   },
+   {
+    "duration": 216,
+    "start_time": "2024-06-23T18:51:07.494Z"
+   },
+   {
+    "duration": 321,
+    "start_time": "2024-06-23T18:51:07.713Z"
+   },
+   {
+    "duration": 11,
+    "start_time": "2024-06-23T18:51:08.037Z"
+   },
+   {
+    "duration": 45,
+    "start_time": "2024-06-23T18:51:08.051Z"
+   },
+   {
+    "duration": 72,
+    "start_time": "2024-06-23T18:51:08.099Z"
+   },
+   {
+    "duration": 78,
+    "start_time": "2024-06-23T18:51:08.173Z"
+   },
+   {
+    "duration": 25,
+    "start_time": "2024-06-23T18:51:08.254Z"
+   },
+   {
+    "duration": 65,
+    "start_time": "2024-06-23T18:51:08.286Z"
+   },
+   {
+    "duration": 4,
+    "start_time": "2024-06-23T18:51:08.354Z"
+   },
+   {
+    "duration": 6916,
+    "start_time": "2024-06-23T18:51:08.362Z"
+   },
+   {
+    "duration": 77,
+    "start_time": "2024-06-23T18:51:15.282Z"
+   },
+   {
+    "duration": 6701,
+    "start_time": "2024-06-23T18:51:15.362Z"
+   },
+   {
+    "duration": 85,
+    "start_time": "2024-06-23T18:51:22.066Z"
+   },
+   {
+    "duration": 5577,
+    "start_time": "2024-06-23T18:51:22.154Z"
+   },
+   {
+    "duration": 97,
+    "start_time": "2024-06-23T18:51:27.735Z"
+   },
+   {
+    "duration": 7271,
+    "start_time": "2024-06-23T18:51:27.838Z"
+   },
+   {
+    "duration": 69,
+    "start_time": "2024-06-23T18:51:35.112Z"
+   },
+   {
+    "duration": 5039,
+    "start_time": "2024-06-23T18:51:35.184Z"
+   },
+   {
+    "duration": 35,
+    "start_time": "2024-06-23T18:51:40.230Z"
+   },
+   {
+    "duration": 129,
+    "start_time": "2024-06-23T18:51:40.267Z"
+   },
+   {
+    "duration": 78,
+    "start_time": "2024-06-23T18:51:40.399Z"
+   },
+   {
+    "duration": 56,
+    "start_time": "2024-06-23T18:51:40.480Z"
+   },
+   {
+    "duration": 39,
+    "start_time": "2024-06-23T18:51:40.540Z"
+   },
+   {
+    "duration": 3,
+    "start_time": "2024-06-23T18:51:40.583Z"
+   },
+   {
+    "duration": 5167,
+    "start_time": "2024-06-24T17:32:20.596Z"
+   },
+   {
+    "duration": 1054,
+    "start_time": "2024-06-24T17:32:25.767Z"
+   },
+   {
+    "duration": 7,
+    "start_time": "2024-06-24T17:32:26.824Z"
+   },
+   {
+    "duration": 3030,
+    "start_time": "2024-06-24T17:32:26.836Z"
+   },
+   {
+    "duration": 38,
+    "start_time": "2024-06-24T17:32:29.869Z"
+   },
+   {
+    "duration": 219,
+    "start_time": "2024-06-24T17:32:29.910Z"
+   },
+   {
+    "duration": 211,
+    "start_time": "2024-06-24T17:32:30.133Z"
+   },
+   {
+    "duration": 323,
+    "start_time": "2024-06-24T17:32:30.347Z"
+   },
+   {
+    "duration": 10,
+    "start_time": "2024-06-24T17:32:30.673Z"
+   },
+   {
+    "duration": 46,
+    "start_time": "2024-06-24T17:32:30.705Z"
+   },
+   {
+    "duration": 68,
+    "start_time": "2024-06-24T17:32:30.754Z"
+   },
+   {
+    "duration": 59,
+    "start_time": "2024-06-24T17:32:30.824Z"
+   },
+   {
+    "duration": 24,
+    "start_time": "2024-06-24T17:32:30.901Z"
+   },
+   {
+    "duration": 48,
+    "start_time": "2024-06-24T17:32:30.928Z"
+   },
+   {
+    "duration": 5,
+    "start_time": "2024-06-24T17:32:31.002Z"
+   },
+   {
+    "duration": 6828,
+    "start_time": "2024-06-24T17:32:31.010Z"
+   },
+   {
+    "duration": 74,
+    "start_time": "2024-06-24T17:32:37.841Z"
+   },
+   {
+    "duration": 6755,
+    "start_time": "2024-06-24T17:32:37.918Z"
+   },
+   {
+    "duration": 70,
+    "start_time": "2024-06-24T17:32:44.676Z"
+   },
+   {
+    "duration": 5402,
+    "start_time": "2024-06-24T17:32:44.749Z"
+   },
+   {
+    "duration": 76,
+    "start_time": "2024-06-24T17:32:50.154Z"
+   },
+   {
+    "duration": 6978,
+    "start_time": "2024-06-24T17:32:50.233Z"
+   },
+   {
+    "duration": 61,
+    "start_time": "2024-06-24T17:32:57.216Z"
+   },
+   {
+    "duration": 5102,
+    "start_time": "2024-06-24T17:32:57.280Z"
+   },
+   {
+    "duration": 47,
+    "start_time": "2024-06-24T17:33:02.385Z"
+   },
+   {
+    "duration": 119,
+    "start_time": "2024-06-24T17:33:02.435Z"
+   },
+   {
+    "duration": 83,
+    "start_time": "2024-06-24T17:33:02.557Z"
+   },
+   {
+    "duration": 53,
+    "start_time": "2024-06-24T17:33:02.648Z"
+   },
+   {
+    "duration": 40,
+    "start_time": "2024-06-24T17:33:02.705Z"
+   },
+   {
+    "duration": 28,
+    "start_time": "2024-06-24T17:54:22.796Z"
+   },
+   {
+    "duration": 672,
+    "start_time": "2024-06-24T19:14:18.697Z"
+   },
+   {
+    "duration": 643,
+    "start_time": "2024-06-24T19:18:27.111Z"
+   },
+   {
+    "duration": 13408,
+    "start_time": "2024-06-24T19:30:14.910Z"
+   },
+   {
+    "duration": 7,
+    "start_time": "2024-06-24T20:13:23.441Z"
+   },
+   {
+    "duration": 1686,
+    "start_time": "2024-06-24T20:16:38.295Z"
+   },
+   {
+    "duration": 984,
+    "start_time": "2024-06-24T20:16:39.985Z"
+   },
+   {
+    "duration": 8,
+    "start_time": "2024-06-24T20:16:40.972Z"
+   },
+   {
+    "duration": 3067,
+    "start_time": "2024-06-24T20:16:40.983Z"
+   },
+   {
+    "duration": 20,
+    "start_time": "2024-06-24T20:16:44.056Z"
+   },
+   {
+    "duration": 215,
+    "start_time": "2024-06-24T20:16:44.100Z"
+   },
+   {
+    "duration": 243,
+    "start_time": "2024-06-24T20:16:44.318Z"
+   },
+   {
+    "duration": 346,
+    "start_time": "2024-06-24T20:16:44.563Z"
+   },
+   {
+    "duration": 13,
+    "start_time": "2024-06-24T20:16:44.912Z"
+   },
+   {
+    "duration": 77,
+    "start_time": "2024-06-24T20:16:44.928Z"
+   },
+   {
+    "duration": 46,
+    "start_time": "2024-06-24T20:16:45.008Z"
+   },
+   {
+    "duration": 91,
+    "start_time": "2024-06-24T20:16:45.058Z"
+   },
+   {
+    "duration": 27,
+    "start_time": "2024-06-24T20:16:45.152Z"
+   },
+   {
+    "duration": 53,
+    "start_time": "2024-06-24T20:16:45.201Z"
+   },
+   {
+    "duration": 5,
+    "start_time": "2024-06-24T20:16:45.257Z"
+   },
+   {
+    "duration": 7357,
+    "start_time": "2024-06-24T20:16:45.265Z"
+   },
+   {
+    "duration": 76,
+    "start_time": "2024-06-24T20:16:52.625Z"
+   },
+   {
+    "duration": 7515,
+    "start_time": "2024-06-24T20:16:52.705Z"
+   },
+   {
+    "duration": 81,
+    "start_time": "2024-06-24T20:17:00.223Z"
+   },
+   {
+    "duration": 5636,
+    "start_time": "2024-06-24T20:17:00.306Z"
+   },
+   {
+    "duration": 81,
+    "start_time": "2024-06-24T20:17:05.947Z"
+   },
+   {
+    "duration": 7436,
+    "start_time": "2024-06-24T20:17:06.031Z"
+   },
+   {
+    "duration": 72,
+    "start_time": "2024-06-24T20:17:13.470Z"
+   },
+   {
+    "duration": 5895,
+    "start_time": "2024-06-24T20:17:13.545Z"
+   },
+   {
+    "duration": 37,
+    "start_time": "2024-06-24T20:17:19.443Z"
+   },
+   {
+    "duration": 123,
+    "start_time": "2024-06-24T20:17:19.502Z"
+   },
+   {
+    "duration": 79,
+    "start_time": "2024-06-24T20:17:19.628Z"
+   },
+   {
+    "duration": 36,
+    "start_time": "2024-06-24T20:17:19.711Z"
+   },
+   {
+    "duration": 76,
+    "start_time": "2024-06-24T20:17:19.750Z"
+   },
+   {
+    "duration": 29,
+    "start_time": "2024-06-24T20:17:19.830Z"
+   },
+   {
+    "duration": 695,
+    "start_time": "2024-06-24T20:17:19.866Z"
+   },
+   {
+    "duration": 678,
+    "start_time": "2024-06-24T20:17:20.564Z"
+   },
+   {
+    "duration": 13389,
+    "start_time": "2024-06-24T20:17:21.245Z"
+   },
+   {
+    "duration": 10,
+    "start_time": "2024-06-24T20:17:34.703Z"
+   },
+   {
+    "duration": 389906,
+    "start_time": "2024-06-24T20:17:34.719Z"
+   },
+   {
+    "duration": 2357,
+    "start_time": "2024-06-24T20:25:04.810Z"
+   },
+   {
+    "duration": 18278,
+    "start_time": "2024-06-24T20:26:38.225Z"
+   },
+   {
+    "duration": 2359,
+    "start_time": "2024-06-24T20:27:11.312Z"
+   },
+   {
+    "duration": 4,
+    "start_time": "2024-06-24T20:54:30.965Z"
+   },
+   {
+    "duration": 749794,
+    "start_time": "2024-06-24T20:54:43.656Z"
+   },
+   {
+    "duration": 29693,
+    "start_time": "2024-06-24T21:08:15.234Z"
+   },
+   {
+    "duration": 319,
+    "start_time": "2024-06-25T16:17:11.011Z"
+   },
+   {
+    "duration": 25,
+    "start_time": "2024-06-25T16:18:41.420Z"
+   },
+   {
+    "duration": 5300,
+    "start_time": "2024-06-25T16:19:15.590Z"
+   },
+   {
+    "duration": 1035,
+    "start_time": "2024-06-25T16:19:20.895Z"
+   },
+   {
+    "duration": 8,
+    "start_time": "2024-06-25T16:19:21.937Z"
+   },
+   {
+    "duration": 3021,
+    "start_time": "2024-06-25T16:19:21.949Z"
+   },
+   {
+    "duration": 39,
+    "start_time": "2024-06-25T16:19:24.975Z"
+   },
+   {
+    "duration": 239,
+    "start_time": "2024-06-25T16:19:25.020Z"
+   },
+   {
+    "duration": 217,
+    "start_time": "2024-06-25T16:19:25.263Z"
+   },
+   {
+    "duration": 324,
+    "start_time": "2024-06-25T16:19:25.483Z"
+   },
+   {
+    "duration": 10,
+    "start_time": "2024-06-25T16:19:25.813Z"
+   },
+   {
+    "duration": 43,
+    "start_time": "2024-06-25T16:19:25.827Z"
+   },
+   {
+    "duration": 77,
+    "start_time": "2024-06-25T16:19:25.873Z"
+   },
+   {
+    "duration": 76,
+    "start_time": "2024-06-25T16:19:25.953Z"
+   },
+   {
+    "duration": 25,
+    "start_time": "2024-06-25T16:19:26.032Z"
+   },
+   {
+    "duration": 66,
+    "start_time": "2024-06-25T16:19:26.064Z"
+   },
+   {
+    "duration": 6,
+    "start_time": "2024-06-25T16:19:26.133Z"
+   },
+   {
+    "duration": 6973,
+    "start_time": "2024-06-25T16:19:26.142Z"
+   },
+   {
+    "duration": 64,
+    "start_time": "2024-06-25T16:19:33.120Z"
+   },
+   {
+    "duration": 6929,
+    "start_time": "2024-06-25T16:19:33.187Z"
+   },
+   {
+    "duration": 61,
+    "start_time": "2024-06-25T16:19:40.119Z"
+   },
+   {
+    "duration": 5568,
+    "start_time": "2024-06-25T16:19:40.183Z"
+   },
+   {
+    "duration": 80,
+    "start_time": "2024-06-25T16:19:45.754Z"
+   },
+   {
+    "duration": 7259,
+    "start_time": "2024-06-25T16:19:45.837Z"
+   },
+   {
+    "duration": 80,
+    "start_time": "2024-06-25T16:19:53.099Z"
+   },
+   {
+    "duration": 5090,
+    "start_time": "2024-06-25T16:19:53.181Z"
+   },
+   {
+    "duration": 48,
+    "start_time": "2024-06-25T16:19:58.273Z"
+   },
+   {
+    "duration": 128,
+    "start_time": "2024-06-25T16:19:58.324Z"
+   },
+   {
+    "duration": 84,
+    "start_time": "2024-06-25T16:19:58.456Z"
+   },
+   {
+    "duration": 38,
+    "start_time": "2024-06-25T16:19:58.543Z"
+   },
+   {
+    "duration": 64,
+    "start_time": "2024-06-25T16:19:58.584Z"
+   },
+   {
+    "duration": 29,
+    "start_time": "2024-06-25T16:19:58.652Z"
+   },
+   {
+    "duration": 664,
+    "start_time": "2024-06-25T16:19:58.684Z"
+   },
+   {
+    "duration": 646,
+    "start_time": "2024-06-25T16:19:59.352Z"
+   },
+   {
+    "duration": 13971,
+    "start_time": "2024-06-25T16:20:00.011Z"
+   },
+   {
+    "duration": 0,
+    "start_time": "2024-06-25T16:20:13.986Z"
+   },
+   {
+    "duration": 0,
+    "start_time": "2024-06-25T16:20:13.988Z"
+   },
+   {
+    "duration": 0,
+    "start_time": "2024-06-25T16:20:13.990Z"
+   },
+   {
+    "duration": 0,
+    "start_time": "2024-06-25T16:20:13.992Z"
+   },
+   {
+    "duration": 0,
+    "start_time": "2024-06-25T16:20:14.014Z"
+   },
+   {
+    "duration": 0,
+    "start_time": "2024-06-25T16:20:14.016Z"
+   },
+   {
+    "duration": 0,
+    "start_time": "2024-06-25T16:20:14.022Z"
+   },
+   {
+    "duration": 345,
+    "start_time": "2024-06-25T16:21:18.603Z"
+   },
+   {
+    "duration": 1702,
+    "start_time": "2024-06-25T16:21:28.187Z"
+   },
+   {
+    "duration": 151,
+    "start_time": "2024-06-25T16:21:53.138Z"
+   },
+   {
+    "duration": 1451,
+    "start_time": "2024-06-25T18:09:30.309Z"
+   },
+   {
+    "duration": 1020,
+    "start_time": "2024-06-25T18:09:55.686Z"
+   },
+   {
+    "duration": 7,
+    "start_time": "2024-06-25T18:10:54.828Z"
+   },
+   {
+    "duration": 2999,
+    "start_time": "2024-06-25T18:11:07.723Z"
+   },
+   {
+    "duration": 20,
+    "start_time": "2024-06-25T18:11:28.644Z"
+   },
+   {
+    "duration": 210,
+    "start_time": "2024-06-25T18:12:10.541Z"
+   },
+   {
+    "duration": 205,
+    "start_time": "2024-06-25T18:12:32.156Z"
+   },
+   {
+    "duration": 317,
+    "start_time": "2024-06-25T18:12:53.381Z"
+   },
+   {
+    "duration": 9,
+    "start_time": "2024-06-25T18:13:40.256Z"
+   },
+   {
+    "duration": 49,
+    "start_time": "2024-06-25T18:14:09.893Z"
+   },
+   {
+    "duration": 45,
+    "start_time": "2024-06-25T18:14:20.048Z"
+   },
+   {
+    "duration": 57,
+    "start_time": "2024-06-25T18:14:37.990Z"
+   },
+   {
+    "duration": 24,
+    "start_time": "2024-06-25T18:15:21.459Z"
+   },
+   {
+    "duration": 47,
+    "start_time": "2024-06-25T18:15:45.177Z"
+   },
+   {
+    "duration": 4,
+    "start_time": "2024-06-25T18:16:15.116Z"
+   },
+   {
+    "duration": 6759,
+    "start_time": "2024-06-25T18:16:45.805Z"
+   },
+   {
+    "duration": 60,
+    "start_time": "2024-06-25T18:17:09.614Z"
+   },
+   {
+    "duration": 6673,
+    "start_time": "2024-06-25T18:17:35.142Z"
+   },
+   {
+    "duration": 66,
+    "start_time": "2024-06-25T18:17:51.712Z"
+   },
+   {
+    "duration": 5222,
+    "start_time": "2024-06-25T18:18:36.518Z"
+   },
+   {
+    "duration": 64,
+    "start_time": "2024-06-25T18:18:52.339Z"
+   },
+   {
+    "duration": 6951,
+    "start_time": "2024-06-25T18:19:11.981Z"
+   },
+   {
+    "duration": 68,
+    "start_time": "2024-06-25T18:19:28.474Z"
+   },
+   {
+    "duration": 5059,
+    "start_time": "2024-06-25T18:19:50.427Z"
+   },
+   {
+    "duration": 34,
+    "start_time": "2024-06-25T18:20:01.191Z"
+   },
+   {
+    "duration": 118,
+    "start_time": "2024-06-25T18:20:34.004Z"
+   },
+   {
+    "duration": 66,
+    "start_time": "2024-06-25T18:20:55.984Z"
+   },
+   {
+    "duration": 36,
+    "start_time": "2024-06-25T18:21:38.072Z"
+   },
+   {
+    "duration": 40,
+    "start_time": "2024-06-25T18:31:30.411Z"
+   },
+   {
+    "duration": 28,
+    "start_time": "2024-06-25T18:31:54.185Z"
+   },
+   {
+    "duration": 633,
+    "start_time": "2024-06-25T18:32:20.490Z"
+   },
+   {
+    "duration": 630,
+    "start_time": "2024-06-25T18:34:16.417Z"
+   },
+   {
+    "duration": 4,
+    "start_time": "2024-06-25T18:49:44.101Z"
+   },
+   {
+    "duration": 7,
+    "start_time": "2024-06-25T18:50:30.457Z"
+   },
+   {
+    "duration": 5,
+    "start_time": "2024-06-25T18:51:31.841Z"
+   },
+   {
+    "duration": 13893,
+    "start_time": "2024-06-25T18:52:44.147Z"
+   },
+   {
+    "duration": 7,
+    "start_time": "2024-06-25T19:06:26.596Z"
+   },
+   {
+    "duration": 13647,
+    "start_time": "2024-06-25T19:06:41.291Z"
+   },
+   {
+    "duration": 5,
+    "start_time": "2024-06-25T19:09:30.638Z"
+   },
+   {
+    "duration": 134113,
+    "start_time": "2024-06-25T19:10:47.946Z"
+   },
+   {
+    "duration": 384088,
+    "start_time": "2024-06-25T19:13:38.790Z"
+   },
+   {
+    "duration": 2331,
+    "start_time": "2024-06-25T19:22:27.753Z"
+   },
+   {
+    "duration": 5,
+    "start_time": "2024-06-25T19:33:37.542Z"
+   },
+   {
+    "duration": 770033,
+    "start_time": "2024-06-25T19:37:01.556Z"
+   },
+   {
+    "duration": 57944,
+    "start_time": "2024-06-25T19:51:20.739Z"
+   },
+   {
+    "duration": 252,
+    "start_time": "2024-06-25T20:32:51.147Z"
+   },
+   {
+    "duration": 244,
+    "start_time": "2024-06-25T20:35:28.411Z"
+   },
+   {
+    "duration": 244,
+    "start_time": "2024-06-25T20:38:19.942Z"
+   },
+   {
+    "duration": 250,
+    "start_time": "2024-06-25T20:39:46.646Z"
+   },
+   {
+    "duration": 280037,
+    "start_time": "2024-06-25T20:44:07.785Z"
+   },
+   {
+    "duration": 21938,
+    "start_time": "2024-06-25T20:58:32.150Z"
+   },
+   {
+    "duration": 180,
+    "start_time": "2024-06-25T21:10:40.878Z"
+   },
+   {
+    "duration": 7,
+    "start_time": "2024-06-25T21:24:10.355Z"
+   },
+   {
+    "duration": 2160389,
+    "start_time": "2024-06-25T21:28:53.814Z"
+   },
+   {
+    "duration": 9,
+    "start_time": "2024-06-25T22:06:17.069Z"
+   },
+   {
+    "duration": 6539,
+    "start_time": "2024-06-25T22:07:15.972Z"
+   },
+   {
+    "duration": 4,
+    "start_time": "2024-06-25T22:15:46.435Z"
+   },
+   {
+    "duration": 6,
+    "start_time": "2024-06-25T22:16:56.514Z"
+   },
+   {
+    "duration": 5,
+    "start_time": "2024-06-25T22:23:43.372Z"
+   },
+   {
+    "duration": 5,
+    "start_time": "2024-06-25T22:23:49.599Z"
+   },
+   {
+    "duration": 512156,
+    "start_time": "2024-06-25T22:34:53.959Z"
+   },
+   {
+    "duration": 6,
+    "start_time": "2024-06-25T22:43:35.906Z"
+   },
+   {
+    "duration": 1477,
+    "start_time": "2024-06-25T22:44:52.763Z"
+   },
+   {
+    "duration": 1047,
+    "start_time": "2024-06-25T22:44:54.243Z"
+   },
+   {
+    "duration": 7,
+    "start_time": "2024-06-25T22:44:55.294Z"
+   },
+   {
+    "duration": 2972,
+    "start_time": "2024-06-25T22:44:55.316Z"
+   },
+   {
+    "duration": 33,
+    "start_time": "2024-06-25T22:44:58.291Z"
+   },
+   {
+    "duration": 214,
+    "start_time": "2024-06-25T22:44:58.327Z"
+   },
+   {
+    "duration": 211,
+    "start_time": "2024-06-25T22:44:58.544Z"
+   },
+   {
+    "duration": 328,
+    "start_time": "2024-06-25T22:44:58.759Z"
+   },
+   {
+    "duration": 9,
+    "start_time": "2024-06-25T22:44:59.090Z"
+   },
+   {
+    "duration": 49,
+    "start_time": "2024-06-25T22:44:59.116Z"
+   },
+   {
+    "duration": 68,
+    "start_time": "2024-06-25T22:44:59.169Z"
+   },
+   {
+    "duration": 73,
+    "start_time": "2024-06-25T22:44:59.240Z"
+   },
+   {
+    "duration": 25,
+    "start_time": "2024-06-25T22:44:59.316Z"
+   },
+   {
+    "duration": 72,
+    "start_time": "2024-06-25T22:44:59.344Z"
+   },
+   {
+    "duration": 4,
+    "start_time": "2024-06-25T22:44:59.419Z"
+   },
+   {
+    "duration": 6941,
+    "start_time": "2024-06-25T22:44:59.426Z"
+   },
+   {
+    "duration": 69,
+    "start_time": "2024-06-25T22:45:06.370Z"
+   },
+   {
+    "duration": 6818,
+    "start_time": "2024-06-25T22:45:06.445Z"
+   },
+   {
+    "duration": 70,
+    "start_time": "2024-06-25T22:45:13.266Z"
+   },
+   {
+    "duration": 5320,
+    "start_time": "2024-06-25T22:45:13.339Z"
+   },
+   {
+    "duration": 79,
+    "start_time": "2024-06-25T22:45:18.662Z"
+   },
+   {
+    "duration": 7033,
+    "start_time": "2024-06-25T22:45:18.743Z"
+   },
+   {
+    "duration": 74,
+    "start_time": "2024-06-25T22:45:25.779Z"
+   },
+   {
+    "duration": 4988,
+    "start_time": "2024-06-25T22:45:25.856Z"
+   },
+   {
+    "duration": 35,
+    "start_time": "2024-06-25T22:45:30.846Z"
+   },
+   {
+    "duration": 143,
+    "start_time": "2024-06-25T22:45:30.884Z"
+   },
+   {
+    "duration": 69,
+    "start_time": "2024-06-25T22:45:31.029Z"
+   },
+   {
+    "duration": 35,
+    "start_time": "2024-06-25T22:45:31.119Z"
+   },
+   {
+    "duration": 66,
+    "start_time": "2024-06-25T22:45:31.157Z"
+   },
+   {
+    "duration": 27,
+    "start_time": "2024-06-25T22:45:31.226Z"
+   },
+   {
+    "duration": 665,
+    "start_time": "2024-06-25T22:45:31.256Z"
+   },
+   {
+    "duration": 667,
+    "start_time": "2024-06-25T22:45:31.925Z"
+   },
+   {
+    "duration": 13247,
+    "start_time": "2024-06-25T22:45:32.595Z"
+   },
+   {
+    "duration": 7,
+    "start_time": "2024-06-25T22:45:45.912Z"
+   },
+   {
+    "duration": 382356,
+    "start_time": "2024-06-25T22:45:45.922Z"
+   },
+   {
+    "duration": 2411,
+    "start_time": "2024-06-25T22:52:08.282Z"
+   },
+   {
+    "duration": 15,
+    "start_time": "2024-06-25T22:52:10.696Z"
+   },
+   {
+    "duration": 767656,
+    "start_time": "2024-06-25T22:52:10.714Z"
+   },
+   {
+    "duration": 57839,
+    "start_time": "2024-06-25T23:04:58.373Z"
+   },
+   {
+    "duration": 269,
+    "start_time": "2024-06-25T23:05:56.215Z"
+   },
+   {
+    "duration": 278378,
+    "start_time": "2024-06-25T23:05:56.488Z"
+   },
+   {
+    "duration": 22002,
+    "start_time": "2024-06-25T23:10:34.869Z"
+   },
+   {
+    "duration": 6,
+    "start_time": "2024-06-25T23:10:56.874Z"
+   },
+   {
+    "duration": 11,
+    "start_time": "2024-06-25T23:10:56.883Z"
+   },
+   {
+    "duration": 518721,
+    "start_time": "2024-06-25T23:10:56.913Z"
+   },
+   {
+    "duration": 223,
+    "start_time": "2024-06-25T23:19:35.637Z"
+   },
+   {
+    "duration": 8,
+    "start_time": "2024-06-25T23:19:35.864Z"
+   },
+   {
+    "duration": 11,
+    "start_time": "2024-06-25T23:19:35.875Z"
+   },
+   {
+    "duration": 6721,
+    "start_time": "2024-06-25T23:19:35.914Z"
+   },
+   {
+    "duration": 12,
+    "start_time": "2024-06-25T23:36:36.855Z"
+   },
+   {
+    "duration": 1556,
+    "start_time": "2024-06-26T03:49:30.356Z"
+   },
+   {
+    "duration": 1030,
+    "start_time": "2024-06-26T03:49:31.916Z"
+   },
+   {
+    "duration": 7,
+    "start_time": "2024-06-26T03:49:32.949Z"
+   },
+   {
+    "duration": 3051,
+    "start_time": "2024-06-26T03:49:32.962Z"
+   },
+   {
+    "duration": 29,
+    "start_time": "2024-06-26T03:49:36.016Z"
+   },
+   {
+    "duration": 213,
+    "start_time": "2024-06-26T03:49:36.048Z"
+   },
+   {
+    "duration": 215,
+    "start_time": "2024-06-26T03:49:36.264Z"
+   },
+   {
+    "duration": 319,
+    "start_time": "2024-06-26T03:49:36.482Z"
+   },
+   {
+    "duration": 10,
+    "start_time": "2024-06-26T03:49:36.804Z"
+   },
+   {
+    "duration": 59,
+    "start_time": "2024-06-26T03:49:36.819Z"
+   },
+   {
+    "duration": 71,
+    "start_time": "2024-06-26T03:49:36.882Z"
+   },
+   {
+    "duration": 58,
+    "start_time": "2024-06-26T03:49:36.956Z"
+   },
+   {
+    "duration": 23,
+    "start_time": "2024-06-26T03:49:37.034Z"
+   },
+   {
+    "duration": 49,
+    "start_time": "2024-06-26T03:49:37.060Z"
+   },
+   {
+    "duration": 8,
+    "start_time": "2024-06-26T03:49:37.133Z"
+   },
+   {
+    "duration": 7173,
+    "start_time": "2024-06-26T03:49:37.145Z"
+   },
+   {
+    "duration": 71,
+    "start_time": "2024-06-26T03:49:44.321Z"
+   },
+   {
+    "duration": 6949,
+    "start_time": "2024-06-26T03:49:44.395Z"
+   },
+   {
+    "duration": 67,
+    "start_time": "2024-06-26T03:49:51.348Z"
+   },
+   {
+    "duration": 5530,
+    "start_time": "2024-06-26T03:49:51.433Z"
+   },
+   {
+    "duration": 75,
+    "start_time": "2024-06-26T03:49:56.966Z"
+   },
+   {
+    "duration": 7178,
+    "start_time": "2024-06-26T03:49:57.044Z"
+   },
+   {
+    "duration": 65,
+    "start_time": "2024-06-26T03:50:04.225Z"
+   },
+   {
+    "duration": 5189,
+    "start_time": "2024-06-26T03:50:04.293Z"
+   },
+   {
+    "duration": 47,
+    "start_time": "2024-06-26T03:50:09.486Z"
+   },
+   {
+    "duration": 124,
+    "start_time": "2024-06-26T03:50:09.536Z"
+   },
+   {
+    "duration": 75,
+    "start_time": "2024-06-26T03:50:09.663Z"
+   },
+   {
+    "duration": 36,
+    "start_time": "2024-06-26T03:50:09.746Z"
+   },
+   {
+    "duration": 70,
+    "start_time": "2024-06-26T03:50:09.784Z"
+   },
+   {
+    "duration": 28,
+    "start_time": "2024-06-26T03:50:09.858Z"
+   },
+   {
+    "duration": 666,
+    "start_time": "2024-06-26T03:50:09.888Z"
+   },
+   {
+    "duration": 639,
+    "start_time": "2024-06-26T03:50:10.559Z"
+   },
+   {
+    "duration": 1505,
+    "start_time": "2024-06-26T03:51:12.388Z"
+   },
+   {
+    "duration": 1040,
+    "start_time": "2024-06-26T03:51:13.897Z"
+   },
+   {
+    "duration": 8,
+    "start_time": "2024-06-26T03:51:14.942Z"
+   },
+   {
+    "duration": 2996,
+    "start_time": "2024-06-26T03:51:14.955Z"
+   },
+   {
+    "duration": 20,
+    "start_time": "2024-06-26T03:51:17.954Z"
+   },
+   {
+    "duration": 234,
+    "start_time": "2024-06-26T03:51:17.977Z"
+   },
+   {
+    "duration": 231,
+    "start_time": "2024-06-26T03:51:18.215Z"
+   },
+   {
+    "duration": 320,
+    "start_time": "2024-06-26T03:51:18.449Z"
+   },
+   {
+    "duration": 10,
+    "start_time": "2024-06-26T03:51:19.229Z"
+   },
+   {
+    "duration": 44,
+    "start_time": "2024-06-26T03:51:20.357Z"
+   },
+   {
+    "duration": 43,
+    "start_time": "2024-06-26T03:51:20.696Z"
+   },
+   {
+    "duration": 61,
+    "start_time": "2024-06-26T03:51:21.527Z"
+   },
+   {
+    "duration": 24,
+    "start_time": "2024-06-26T03:51:23.540Z"
+   },
+   {
+    "duration": 45,
+    "start_time": "2024-06-26T03:51:25.338Z"
+   },
+   {
+    "duration": 525,
+    "start_time": "2024-06-26T04:09:44.660Z"
+   },
+   {
+    "duration": 34,
+    "start_time": "2024-06-26T04:09:45.238Z"
+   },
+   {
+    "duration": 41,
+    "start_time": "2024-06-26T04:09:49.309Z"
+   },
+   {
+    "duration": 4,
+    "start_time": "2024-06-26T04:09:50.100Z"
+   },
+   {
+    "duration": 6413,
+    "start_time": "2024-06-26T04:09:51.184Z"
+   },
+   {
+    "duration": 69,
+    "start_time": "2024-06-26T04:09:57.601Z"
+   },
+   {
+    "duration": 6506,
+    "start_time": "2024-06-26T04:09:57.674Z"
+   },
+   {
+    "duration": 68,
+    "start_time": "2024-06-26T04:10:04.183Z"
+   },
+   {
+    "duration": 5047,
+    "start_time": "2024-06-26T04:10:04.254Z"
+   },
+   {
+    "duration": 69,
+    "start_time": "2024-06-26T04:10:09.303Z"
+   },
+   {
+    "duration": 6723,
+    "start_time": "2024-06-26T04:10:09.377Z"
+   },
+   {
+    "duration": 71,
+    "start_time": "2024-06-26T04:10:16.106Z"
+   },
+   {
+    "duration": 4777,
+    "start_time": "2024-06-26T04:10:16.180Z"
+   },
+   {
+    "duration": 33,
+    "start_time": "2024-06-26T04:10:20.961Z"
+   },
+   {
+    "duration": 129,
+    "start_time": "2024-06-26T04:10:20.997Z"
+   },
+   {
+    "duration": 67,
+    "start_time": "2024-06-26T04:10:21.133Z"
+   },
+   {
+    "duration": 60,
+    "start_time": "2024-06-26T04:10:21.203Z"
+   },
+   {
+    "duration": 41,
+    "start_time": "2024-06-26T04:10:21.266Z"
+   },
+   {
+    "duration": 52,
+    "start_time": "2024-06-26T04:10:21.310Z"
+   },
+   {
+    "duration": 643,
+    "start_time": "2024-06-26T04:10:21.368Z"
+   },
+   {
+    "duration": 331,
+    "start_time": "2024-06-28T08:58:31.422Z"
+   },
+   {
+    "duration": 1521,
+    "start_time": "2024-06-28T08:58:45.668Z"
+   },
+   {
+    "duration": 1022,
+    "start_time": "2024-06-28T08:58:47.192Z"
+   },
+   {
+    "duration": 15,
+    "start_time": "2024-06-28T08:58:48.217Z"
+   },
+   {
+    "duration": 3034,
+    "start_time": "2024-06-28T08:58:48.237Z"
+   },
+   {
+    "duration": 21,
+    "start_time": "2024-06-28T08:58:51.274Z"
+   },
+   {
+    "duration": 241,
+    "start_time": "2024-06-28T08:58:51.298Z"
+   },
+   {
+    "duration": 253,
+    "start_time": "2024-06-28T08:58:51.542Z"
+   },
+   {
+    "duration": 360,
+    "start_time": "2024-06-28T08:58:51.798Z"
+   },
+   {
+    "duration": 9,
+    "start_time": "2024-06-28T08:58:52.161Z"
+   },
+   {
+    "duration": 76,
+    "start_time": "2024-06-28T08:58:52.176Z"
+   },
+   {
+    "duration": 44,
+    "start_time": "2024-06-28T08:58:52.254Z"
+   },
+   {
+    "duration": 77,
+    "start_time": "2024-06-28T08:58:52.301Z"
+   },
+   {
+    "duration": 26,
+    "start_time": "2024-06-28T08:58:52.382Z"
+   },
+   {
+    "duration": 49,
+    "start_time": "2024-06-28T08:58:52.431Z"
+   },
+   {
+    "duration": 4,
+    "start_time": "2024-06-28T08:58:52.483Z"
+   },
+   {
+    "duration": 7031,
+    "start_time": "2024-06-28T08:58:52.490Z"
+   },
+   {
+    "duration": 64,
+    "start_time": "2024-06-28T08:58:59.524Z"
+   },
+   {
+    "duration": 6944,
+    "start_time": "2024-06-28T08:58:59.590Z"
+   },
+   {
+    "duration": 61,
+    "start_time": "2024-06-28T08:59:06.537Z"
+   },
+   {
+    "duration": 5307,
+    "start_time": "2024-06-28T08:59:06.601Z"
+   },
+   {
+    "duration": 73,
+    "start_time": "2024-06-28T08:59:11.911Z"
+   },
+   {
+    "duration": 7166,
+    "start_time": "2024-06-28T08:59:11.987Z"
+   },
+   {
+    "duration": 79,
+    "start_time": "2024-06-28T08:59:19.156Z"
+   },
+   {
+    "duration": 5234,
+    "start_time": "2024-06-28T08:59:19.238Z"
+   },
+   {
+    "duration": 54,
+    "start_time": "2024-06-28T08:59:24.476Z"
+   },
+   {
+    "duration": 126,
+    "start_time": "2024-06-28T08:59:24.534Z"
+   },
+   {
+    "duration": 123,
+    "start_time": "2024-06-28T08:59:24.663Z"
+   },
+   {
+    "duration": 60,
+    "start_time": "2024-06-28T08:59:24.796Z"
+   },
+   {
+    "duration": 45,
+    "start_time": "2024-06-28T08:59:24.859Z"
+   },
+   {
+    "duration": 50,
+    "start_time": "2024-06-28T08:59:24.907Z"
+   },
+   {
+    "duration": 1286,
+    "start_time": "2024-06-28T08:59:24.960Z"
+   },
+   {
+    "duration": 0,
+    "start_time": "2024-06-28T08:59:26.252Z"
+   },
+   {
+    "duration": 0,
+    "start_time": "2024-06-28T08:59:26.254Z"
+   },
+   {
+    "duration": 0,
+    "start_time": "2024-06-28T08:59:26.255Z"
+   },
+   {
+    "duration": 0,
+    "start_time": "2024-06-28T08:59:26.257Z"
+   },
+   {
+    "duration": 0,
+    "start_time": "2024-06-28T08:59:26.262Z"
+   },
+   {
+    "duration": 0,
+    "start_time": "2024-06-28T08:59:26.265Z"
+   },
+   {
+    "duration": 0,
+    "start_time": "2024-06-28T08:59:26.268Z"
+   },
+   {
+    "duration": 0,
+    "start_time": "2024-06-28T08:59:26.270Z"
+   },
+   {
+    "duration": 0,
+    "start_time": "2024-06-28T08:59:26.273Z"
+   },
+   {
+    "duration": 0,
+    "start_time": "2024-06-28T08:59:26.275Z"
+   },
+   {
+    "duration": 0,
+    "start_time": "2024-06-28T08:59:26.278Z"
+   },
+   {
+    "duration": 0,
+    "start_time": "2024-06-28T08:59:26.281Z"
+   },
+   {
+    "duration": 0,
+    "start_time": "2024-06-28T08:59:26.283Z"
+   },
+   {
+    "duration": 0,
+    "start_time": "2024-06-28T08:59:26.285Z"
+   },
+   {
+    "duration": 0,
+    "start_time": "2024-06-28T08:59:26.288Z"
+   },
+   {
+    "duration": 0,
+    "start_time": "2024-06-28T08:59:26.290Z"
+   },
+   {
+    "duration": 0,
+    "start_time": "2024-06-28T08:59:26.293Z"
+   },
+   {
+    "duration": 0,
+    "start_time": "2024-06-28T08:59:26.295Z"
+   },
+   {
+    "duration": 0,
+    "start_time": "2024-06-28T08:59:26.298Z"
+   },
+   {
+    "duration": 53,
+    "start_time": "2024-06-28T08:59:54.441Z"
+   },
+   {
+    "duration": 20,
+    "start_time": "2024-06-28T09:00:17.002Z"
+   },
+   {
+    "duration": 50,
+    "start_time": "2024-06-28T09:00:24.515Z"
+   },
+   {
+    "duration": 30,
+    "start_time": "2024-06-28T09:00:35.232Z"
+   },
+   {
+    "duration": 1471,
+    "start_time": "2024-06-28T09:01:31.823Z"
+   },
+   {
+    "duration": 957,
+    "start_time": "2024-06-28T09:01:35.947Z"
+   },
+   {
+    "duration": 8,
+    "start_time": "2024-06-28T09:01:43.243Z"
+   },
+   {
+    "duration": 3062,
+    "start_time": "2024-06-28T09:01:47.723Z"
+   },
+   {
+    "duration": 19,
+    "start_time": "2024-06-28T09:01:57.540Z"
+   },
+   {
+    "duration": 321,
+    "start_time": "2024-06-28T09:02:38.038Z"
+   },
+   {
+    "duration": 54,
+    "start_time": "2024-06-28T09:02:48.754Z"
+   },
+   {
+    "duration": 44,
+    "start_time": "2024-06-28T09:02:51.858Z"
+   },
+   {
+    "duration": 59,
+    "start_time": "2024-06-28T09:02:55.138Z"
+   },
+   {
+    "duration": 25,
+    "start_time": "2024-06-28T09:03:00.822Z"
+   },
+   {
+    "duration": 4,
+    "start_time": "2024-06-28T09:03:10.462Z"
+   },
+   {
+    "duration": 6898,
+    "start_time": "2024-06-28T09:03:14.345Z"
+   },
+   {
+    "duration": 60,
+    "start_time": "2024-06-28T09:03:24.836Z"
+   },
+   {
+    "duration": 6858,
+    "start_time": "2024-06-28T09:03:31.266Z"
+   },
+   {
+    "duration": 61,
+    "start_time": "2024-06-28T09:03:43.641Z"
+   },
+   {
+    "duration": 5333,
+    "start_time": "2024-06-28T09:03:47.964Z"
+   },
+   {
+    "duration": 63,
+    "start_time": "2024-06-28T09:03:56.809Z"
+   },
+   {
+    "duration": 7129,
+    "start_time": "2024-06-28T09:04:01.181Z"
+   },
+   {
+    "duration": 61,
+    "start_time": "2024-06-28T09:04:12.545Z"
+   },
+   {
+    "duration": 5765,
+    "start_time": "2024-06-28T09:04:19.493Z"
+   },
+   {
+    "duration": 36,
+    "start_time": "2024-06-28T09:04:28.850Z"
+   },
+   {
+    "duration": 142,
+    "start_time": "2024-06-28T09:04:33.336Z"
+   },
+   {
+    "duration": 65,
+    "start_time": "2024-06-28T09:04:38.603Z"
+   },
+   {
+    "duration": 36,
+    "start_time": "2024-06-28T09:04:49.273Z"
+   },
+   {
+    "duration": 41,
+    "start_time": "2024-06-28T09:04:57.009Z"
+   },
+   {
+    "duration": 28,
+    "start_time": "2024-06-28T09:05:05.282Z"
+   },
+   {
+    "duration": 868,
+    "start_time": "2024-06-28T09:05:14.666Z"
+   },
+   {
+    "duration": 217,
+    "start_time": "2024-06-28T09:05:25.735Z"
+   },
+   {
+    "duration": 45,
+    "start_time": "2024-06-28T09:12:06.886Z"
+   },
+   {
+    "duration": 75,
+    "start_time": "2024-06-28T09:12:52.070Z"
+   },
+   {
+    "duration": 216,
+    "start_time": "2024-06-28T09:16:13.041Z"
+   },
+   {
+    "duration": 214,
+    "start_time": "2024-06-28T09:18:46.529Z"
+   },
+   {
+    "duration": 45,
+    "start_time": "2024-06-28T09:19:07.331Z"
+   },
+   {
+    "duration": 110,
+    "start_time": "2024-06-28T09:19:11.921Z"
+   },
+   {
+    "duration": 5,
+    "start_time": "2024-06-28T09:20:15.854Z"
+   },
+   {
+    "duration": 321,
+    "start_time": "2024-06-28T09:23:13.282Z"
+   },
+   {
+    "duration": 5,
+    "start_time": "2024-06-28T09:26:15.802Z"
+   },
+   {
+    "duration": 4479,
+    "start_time": "2024-06-28T09:32:50.986Z"
+   },
+   {
+    "duration": 5,
+    "start_time": "2024-06-28T09:37:44.735Z"
+   },
+   {
+    "duration": 40235,
+    "start_time": "2024-06-28T09:42:52.511Z"
+   },
+   {
+    "duration": 1029847,
+    "start_time": "2024-06-28T09:49:44.250Z"
+   },
+   {
+    "duration": 0,
+    "start_time": "2024-06-28T10:06:54.100Z"
+   },
+   {
+    "duration": 9,
+    "start_time": "2024-06-28T10:07:16.475Z"
+   },
+   {
+    "duration": 12,
+    "start_time": "2024-06-28T10:08:03.541Z"
+   }
+  ],
+  "kernelspec": {
+   "display_name": "Python 3 (ipykernel)",
+   "language": "python",
+   "name": "python3"
+  },
+  "language_info": {
+   "codemirror_mode": {
+    "name": "ipython",
+    "version": 3
+   },
+   "file_extension": ".py",
+   "mimetype": "text/x-python",
+   "name": "python",
+   "nbconvert_exporter": "python",
+   "pygments_lexer": "ipython3",
+   "version": "3.9.19"
+  },
+  "toc": {
+   "base_numbering": 1,
+   "nav_menu": {},
+   "number_sections": true,
+   "sideBar": true,
+   "skip_h1_title": true,
+   "title_cell": "Table of Contents",
+   "title_sidebar": "Contents",
+   "toc_cell": false,
+   "toc_position": {
+    "height": "calc(100% - 180px)",
+    "left": "10px",
+    "top": "150px",
+    "width": "165px"
+   },
+   "toc_section_display": true,
+   "toc_window_display": true
+  }
+ },
+ "nbformat": 4,
+ "nbformat_minor": 2
+}
