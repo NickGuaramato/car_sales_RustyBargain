@@ -80,6 +80,35 @@ df_new.drop_duplicates(inplace= True)
 #Muestro la existencia de los cambios
 print(f'Valores duplicados: {df_new.duplicated().sum()}')
 
+
+#VISUALIZANDO DATOS
+
+#Análisis de distribución de columnas categóricas
+categorical_columns = ['vehicle_type', 'fuel_type', 'gearbox', 'not_repaired', 'brand']
+
+for col in categorical_columns:
+    plt.figure(figsize=(10, 5))
+    sns.countplot(data=df, x=col, order=df[col].value_counts().index, hue=col, palette='viridis', legend=False)
+    plt.title(f'Distribución de {col}')
+    plt.xlabel(col)
+    plt.ylabel('Frecuencia')
+    plt.xticks(rotation=90)
+    plt.tight_layout()
+    plt.savefig(f'outputs/plots/{col}_distribution.png')
+    plt.show()
+
+#Distribución. Primeros 50
+top50_models = df['model'].value_counts().head(50).index
+plt.figure(figsize=(12, 6))
+sns.countplot(data=df[df['model'].isin(top50_models)], x='model', order=top50_models)
+plt.title('Distribución de Modelos (Primeros 50)')
+plt.xlabel('Modelos')
+plt.ylabel('Frecuencia')
+plt.xticks(rotation=90)
+plt.tight_layout()
+plt.savefig(f'outputs/plots/top50_distribution.png')
+plt.show()
+
 #Observando mínimos y máximos en columna con datos sospechosamente errados
 columns = [
     ('registration_year', 'Año'),
@@ -116,7 +145,7 @@ print(f"registration_month: {len(outliers_month)} valores atípicos fuera del ra
 #Valores inusuales que no son detectados estadísticamente
 plt.figure(figsize=(10, 5))
 sns.histplot(df_new['registration_month'], bins=12, kde=False)
-plt.title('Distribución de registration_month')
+plt.title('Distribución atípica registration_month')
 plt.xlabel('Mes')
 plt.ylabel('Frecuencia')
 plt.savefig(f'outputs/plots/non-typical_value_hist.png')
@@ -296,6 +325,17 @@ print(df_new_filt.info())
 df_new_filt.to_csv('outputs/preprocessed/preprocessed_data.csv', index=False)
 
 
+
+#Observo distribución de variable objetivo
+plt.figure(figsize=(10, 5))
+sns.histplot(np.log1p(df_new_filt['price']), kde=True)
+plt.title('Distribución de precios (log)')
+plt.xlabel('Log(Price)')
+plt.ylabel('Frecuencia')
+plt.savefig('outputs/plots/log_price_distribution.png')
+plt.show()
+
+
 #Observo correlación
 numeric_df = df_new_filt.select_dtypes(include=[float, int])
 print(numeric_df.corr())
@@ -313,8 +353,10 @@ plt.title("Matriz de Correlación")
 plt.savefig(f'outputs/plots/corr_matrix.png')
 plt.show()
 
-
-
+#Relación: Precio/variables categóricas
+for col in categorical_columns:
+    mean_price = df_new_filt.groupby(col)['price'].mean().sort_values(ascending=False)
+    print(f'Precio promedio por {col}:\n', mean_price)
 
 #ENTRENAMIENTO DEL MODELO
 actual_year = 2024
@@ -324,10 +366,34 @@ print(df_new_filt)
 print()
 print(df_new_filt['vehicle_age'].describe())
 
+#vehicle_age es igual al máximo encontrado
+max_age = df_new_filt['vehicle_age'].max()
+outliers = df_new_filt[df_new_filt['vehicle_age'] == max_age]
+print(outliers)
+
+#Elimino al ser un dato practicamente superfluo en nuestro análisis
+df_new_filt = df_new_filt[df_new_filt['vehicle_age'] != 114]
+df_new_filt.reset_index(drop=True, inplace=True)
+print(df_new_filt.loc[df_new_filt['vehicle_age'] == 114])
+print(df_new_filt['vehicle_age'].describe())
+
+#mileage_per_year. Kilometraje por año
+if 'mileage' in df_new.columns:
+    df_new_filt['mileage_per_year'] = df_new_filt['mileage'] / df_new_filt['vehicle_age']
+
+print(df_new_filt)
+print()
+print(df_new_filt['mileage_per_year'].describe())
+
 #Último ajuste
 df_new_filt = df_new_filt.drop(['registration_month'], axis=1)
 #observo cambios
 print(df_new_filt.columns)
+
+#Guardo dataset con nuevas características
+df_new_filt.to_csv('outputs/preprocessed/prepro_data_eng_charact.csv', index=False)
+
+
 
 #Codificación y Escalado
 categorical_cols = ['vehicle_type', 'gearbox', 'fuel_type', 'brand', 'model', 'not_repaired']
