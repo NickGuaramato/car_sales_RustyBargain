@@ -91,6 +91,37 @@ for col, description in columns:
     print(f'{description} más bajo registrado: {df_new[col].min()}')
     print(f'{description} más alto registrado: {df_new[col].max()}')
 
+#Diagrama de caja
+numeric_columns = ['registration_year', 'power', 'registration_month']
+         
+for col in numeric_columns:
+    plt.figure(figsize=(10, 5))
+    sns.boxplot(x=np.log1p(df_new[col]))  #np.log1p(x) aplica log(1+x) y evita log(0)
+    plt.title(f'Distribución de {col} (en escala logarítmica)')
+    plt.xlabel(f'{col} (log)')
+    plt.savefig(f'outputs/plots/boxplot_log_{col}.png')
+    plt.show()
+
+#Estadísticas adicionales
+for col in numeric_columns:
+    Q1 = df_new[col].quantile(0.25)
+    Q3 = df_new[col].quantile(0.75)
+    IQR = Q3 - Q1
+    outliers = df_new[(df_new[col] < Q1 - 1.5 * IQR) | (df_new[col] > Q3 + 1.5 * IQR)]
+    print(f'{col}: {len(outliers)} valores atípicos detectados.')
+
+outliers_month = df_new[(df_new['registration_month'] < 1)]
+print(f"registration_month: {len(outliers_month)} valores atípicos fuera del rango esperado (1-12).")
+
+#Valores inusuales que no son detectados estadísticamente
+plt.figure(figsize=(10, 5))
+sns.histplot(df_new['registration_month'], bins=12, kde=False)
+plt.title('Distribución de registration_month')
+plt.xlabel('Mes')
+plt.ylabel('Frecuencia')
+plt.savefig(f'outputs/plots/non-typical_value_hist.png')
+plt.show()
+
 
 #Filtrando y acotando datos para columna del año de registro (registration_year)
 df_new_filt = df_new.query('1900 <= registration_year <= 2024')
@@ -281,6 +312,9 @@ sns.heatmap(correlation_matrix, annot=True, cmap='coolwarm', fmt=".2f", linewidt
 plt.title("Matriz de Correlación")
 plt.savefig(f'outputs/plots/corr_matrix.png')
 plt.show()
+
+
+
 
 #ENTRENAMIENTO DEL MODELO
 actual_year = 2024
