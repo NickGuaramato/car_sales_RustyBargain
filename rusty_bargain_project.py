@@ -14,11 +14,9 @@ from sklearn.model_selection import train_test_split
 from sklearn.tree import DecisionTreeRegressor
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.linear_model import LinearRegression
-from sklearn.linear_model import LogisticRegression
-from sklearn.preprocessing import StandardScaler
+from sklearn.preprocessing import StandardScaler, OneHotEncoder
 from sklearn.metrics import mean_squared_error
 from sklearn.model_selection import GridSearchCV
-from sklearn.preprocessing import OrdinalEncoder
 
 from catboost import CatBoostRegressor
 from xgboost import XGBRegressor
@@ -40,6 +38,11 @@ print(df.info())
 print()
 print('Estadística descriptiva de DataFrame:')
 print(df.describe())
+
+#Exportanción de estadísticas descriptiva en datos originales
+df_stats = df.describe(include='all')
+df_stats.to_csv('outputs/reports/original_data_statistics.csv', index=True)
+
 
 #Cambiando formato de columnas para una mejor exploración de datos
 df.columns = df.columns.str.replace(r'([A-Z])', r'_\1', regex=True).str.strip('_').str.lower()
@@ -79,6 +82,10 @@ print(dup_row_sorted)
 df_new.drop_duplicates(inplace= True)
 #Muestro la existencia de los cambios
 print(f'Valores duplicados: {df_new.duplicated().sum()}')
+
+#exportación de datos luego de eliminación de duplicados
+df_stats = df_new.describe(include='all')
+df_stats.to_csv('outputs/reports/unduplicated_data_statistics.csv', index=True)
 
 
 #VISUALIZANDO DATOS
@@ -321,19 +328,106 @@ print(f'Cantidad de valores ausentes luego de eliminar filas: {len(no_nan_not_r)
 df_new_filt.reset_index(drop=True, inplace=True)
 print(df_new_filt.info())
 
-#Guardando datos preprocesados
+#Estadística descriptiva luego de limpieza de datos. Guardando
+df_stats = df_new_filt.describe(include='all')
+df_stats.to_csv('outputs/reports/preprocessed_data_statistics.csv', index=True)
+
+#Guardando dataset con datos preprocesados.
 df_new_filt.to_csv('outputs/preprocessed/preprocessed_data.csv', index=False)
 
 
 
-#Observo distribución de variable objetivo
+#Distribución. Variable objetivo 'price'
+log_price = np.log1p(df_new_filt['price'])
+
 plt.figure(figsize=(10, 5))
-sns.histplot(np.log1p(df_new_filt['price']), kde=True)
+sns.histplot(log_price, kde=True)
 plt.title('Distribución de precios (log)')
 plt.xlabel('Log(Price)')
 plt.ylabel('Frecuencia')
 plt.savefig('outputs/plots/log_price_distribution.png')
 plt.show()
+
+#Resumen de estadística descriptiva del precio original respecto a la transformación
+#Estadísticas descriptivas del precio original
+original_price = df_new_filt['price'].describe()
+
+#Estadísticas descriptivas del precio transformado
+log_price_stats = log_price.describe()
+
+print("Estadísticas descriptivas del precio original:")
+print(original_price)
+
+print("\nEstadísticas descriptivas del precio transformado (log):")
+print(log_price_stats)
+
+#guardar estadísticas
+estadisticas = pd.DataFrame({
+    "Precio Original": original_price,
+    "Precio Transformado (Log)": log_price_stats
+})
+estadisticas.to_csv('outputs/reports/stats_price(ori)_price(log).csv', index=True)
+
+#Visualización de ambas distribuciones
+plt.figure(figsize=(12, 6))
+
+#Precio original
+plt.subplot(1, 2, 1)
+sns.histplot(df_new_filt['price'], kde=True, color='blue')
+plt.title('Distribución de precios originales')
+plt.xlabel('Precio')
+plt.ylabel('Frecuencia')
+
+#Precio transformado (log)
+plt.subplot(1, 2, 2)
+sns.histplot(log_price, kde=True, color='green')
+plt.title('Distribución de precios (log)')
+plt.xlabel('Log(Precio)')
+plt.ylabel('Frecuencia')
+
+plt.tight_layout()
+plt.savefig('outputs/plots/distribution_price(orig)_price(log).png')
+plt.show()
+
+
+#Relación: Precio/variables categóricas
+for col in categorical_columns:
+    mean_price = df_new_filt.groupby(col)['price'].mean().sort_values(ascending=False)
+    print(f'Precio promedio por {col}:\n', mean_price)
+
+#histograma
+plt.figure(figsize=(12, 6))
+
+for col in categorical_columns:
+    mean_price = df_new_filt.groupby(col)['price'].mean().sort_values(ascending=False)
+    mean_price_df = mean_price.reset_index()
+
+    plt.figure(figsize=(10, 6))
+    sns.barplot(data=mean_price_df, x=col, y='price', palette='viridis')
+
+    plt.title(f'Precio promedio por {col}', fontsize=16)
+    plt.xlabel(col, fontsize=14)
+    plt.ylabel('Precio promedio', fontsize=14)
+    plt.xticks(rotation=90)
+
+    plt.tight_layout()
+    plt.savefig('outputs/plots/bar_price_vs_categorical.png')
+    plt.show()
+
+#boxplot
+plt.figure(figsize=(12, 6))
+
+for col in categorical_columns:
+    #gráfico de cajas
+    plt.figure(figsize=(10, 6))
+    sns.boxplot(data=df_new_filt, x=col, y='price', palette='viridis')
+    plt.title(f'Distribución del precio por {col}', fontsize=16)
+    plt.xlabel(col, fontsize=14)
+    plt.ylabel('Precio', fontsize=14)
+    plt.xticks(rotation=90)
+    plt.tight_layout()
+    plt.savefig('outputs/plots/boxplot_price_vs_categorical.png')
+    plt.show()
 
 
 #Observo correlación
@@ -353,12 +447,9 @@ plt.title("Matriz de Correlación")
 plt.savefig(f'outputs/plots/corr_matrix.png')
 plt.show()
 
-#Relación: Precio/variables categóricas
-for col in categorical_columns:
-    mean_price = df_new_filt.groupby(col)['price'].mean().sort_values(ascending=False)
-    print(f'Precio promedio por {col}:\n', mean_price)
 
-#ENTRENAMIENTO DEL MODELO
+
+#INGENIERÍA DE CARACTERÍSTICAS
 actual_year = 2024
 df_new_filt['vehicle_age'] = actual_year - df_new_filt['registration_year']
 df_new_filt.rename(columns={'registration_year' : 'vehicle_age'})
@@ -390,10 +481,16 @@ df_new_filt = df_new_filt.drop(['registration_month'], axis=1)
 #observo cambios
 print(df_new_filt.columns)
 
+#Estadística descriptiva para dataset final
+df_stats = df_new_filt.describe(include='all')
+df_stats.to_csv('outputs/reports/final_statistics_data.csv', index=True)
+
 #Guardo dataset con nuevas características
 df_new_filt.to_csv('outputs/preprocessed/prepro_data_eng_charact.csv', index=False)
 
 
+
+#ENTRENAMMIENTO DE MODELO
 
 #Codificación y Escalado
 categorical_cols = ['vehicle_type', 'gearbox', 'fuel_type', 'brand', 'model', 'not_repaired']
@@ -402,18 +499,35 @@ numerical_cols = ['power', 'mileage', 'vehicle_age']
 #Asigno a variable que luego será usada
 df_new_filt_OHE = df_new_filt.copy()
 
-#Codifico frecuencia para columnas categóricas
-#Asigno proporción de su aparición en las respectivas columnas
-for col in categorical_cols:
-    encod_frequency = df_new_filt_OHE[col].value_counts() / len(df_new_filt_OHE)
-    df_new_filt_OHE[col] = df_new_filt_OHE[col].map(encod_frequency)
+# Separar columnas con pocas categorías
+low_cardinality_cols = ['vehicle_type', 'gearbox', 'fuel_type', 'not_repaired']
+high_cardinality_cols = ['brand', 'model']
 
-#Escalo características númericas
+#Aplicar One-Hot Encoding con prefijos
+encoder = OneHotEncoder(sparse_output=False, drop='first')
+ohe_encoded = encoder.fit_transform(df_new_filt_OHE[low_cardinality_cols])
+
+#Generar nombres de columnas con prefijos claros
+ohe_column_names = [f"{col}_{cat}" for col, categories in zip(low_cardinality_cols, encoder.categories_)
+                    for cat in categories[1:]]  # Excluye la primera categoría por 'drop=first'
+
+#Crear DataFrame con nombres ajustados
+ohe_df = pd.DataFrame(ohe_encoded, columns=ohe_column_names)
+
+#Reemplazar y concatenar con nombres personalizados
+df_new_filt_OHE = df_new_filt_OHE.drop(low_cardinality_cols, axis=1)
+df_new_filt_OHE = pd.concat([df_new_filt_OHE, ohe_df], axis=1)
+
+#Codificar por frecuencia para columnas con alta cardinalidad
+for col in high_cardinality_cols:
+    freq_encoding = df_new_filt_OHE[col].value_counts() / len(df_new_filt_OHE)
+    df_new_filt_OHE[col] = df_new_filt_OHE[col].map(freq_encoding)
+
+#Escalar características numéricas
 scaler = StandardScaler()
 df_new_filt_OHE[numerical_cols] = scaler.fit_transform(df_new_filt_OHE[numerical_cols])
 
-#Observo
-print('Luego de codificado de frecuencia y escalado:')
+print('Luego de codificación híbrida y escalado:')
 print(df_new_filt_OHE.head())
 
 #Características y Objetivo
