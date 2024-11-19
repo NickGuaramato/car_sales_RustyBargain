@@ -411,7 +411,7 @@ for col in categorical_columns:
     plt.xticks(rotation=90)
 
     plt.tight_layout()
-    plt.savefig('outputs/plots/bar_price_vs_categorical.png')
+    plt.savefig(f'outputs/plots/bar_price_vs_{col}.png')
     plt.show()
 
 #boxplot
@@ -426,7 +426,7 @@ for col in categorical_columns:
     plt.ylabel('Precio', fontsize=14)
     plt.xticks(rotation=90)
     plt.tight_layout()
-    plt.savefig('outputs/plots/boxplot_price_vs_categorical.png')
+    plt.savefig(f'outputs/plots/boxplot_price_vs_{col}.png')
     plt.show()
 
 
