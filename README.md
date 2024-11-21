@@ -13,9 +13,9 @@ El proposito del presenta fue desarrollar un modelo que pueda determinar el valo
 
 Se realizó lo siguiente para la respectiva preparación del conjunto de datos:
 
-	- Manejo de datos ausentes y duplicados donde se eliminó y relleno algunos valores según la relevancia de los mismos.
-	- Transformación de valores atípicos ajustando los datos extremos para mantener la coherencia con el mercado.
-	- Codificación y escalado en las características para la respectiva preparación del entrenamiento del modelo dado el conjunto de datos pertinente.
+- Manejo de datos ausentes y duplicados donde se eliminó y relleno algunos valores según la relevancia de los mismos.
+- Transformación de valores atípicos ajustando los datos extremos para mantener la coherencia con el mercado.
+- Codificación y escalado en las características para la respectiva preparación del entrenamiento del modelo dado el conjunto de datos pertinente.
 
  Acceda a [outputs/plots](https://github.com/NickGuaramato/car_sales_RustyBargain/tree/main/outputs/plots) para obtener mejores detalles de las respectivas gráficas
 
@@ -23,9 +23,9 @@ Se realizó lo siguiente para la respectiva preparación del conjunto de datos:
 
 A parte de emplear la regresión lineal como prueba de cordura, se implementaron varios modelos de regresión que pudieran mejorar la métrica arrojada por la prueba de cordura, tanto para los datos originales de la variable objetivo como en su respectiva versión logarítmica. Las configuraciones y métricas empleadas para la optimización de los modelos fueron:
 
-	- Ajuste de hiperparámetros usando la librería GridSearchCV para optimizar las combinaciones clave que demanda cada modelo.
-	- Evaluación mediante múltiples pliegues (cv) para asegurar la robustez en las métricas.
-	- **Función objetivo**: Minimización de RMSE
+- Ajuste de hiperparámetros usando la librería GridSearchCV para optimizar las combinaciones clave que demanda cada modelo.
+- Evaluación mediante múltiples pliegues (cv) para asegurar la robustez en las métricas.
+- **Función objetivo**: Minimización de RMSE
 
 ## Conclusiones 🚀
 ### Desempeño de los Modelos
