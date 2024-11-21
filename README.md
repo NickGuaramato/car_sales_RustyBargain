@@ -16,9 +16,11 @@ Se realizó lo siguiente para la respectiva preparación del conjunto de datos:
 	- Transformación de valores atípicos ajustando los datos extremos para mantener la coherencia con el mercado.
 	- Codificación y escalado en las características para la respectiva preparación del entrenamiento del modelo dado el conjunto de datos pertinente.
 
+ Acceda a [outputs/plots](https://github.com/NickGuaramato/car_sales_RustyBargain/tree/main/outputs/plots) para obtener mejores detalles de las respectivas gráficas
+
 ## Modelos Probados y Metodología ⚙️
 
-Se implementaron varios modelos de regresión, tanto para los datos originales de la variable objetivo como en su respectiva versión logarítmica. Las configuraciones y métricas empleadas para la optimización de los modelos fueron:
+A parte de emplear la regresión lineal como prueba de cordura, se implementaron varios modelos de regresión que pudieran mejorar la métrica arrojada por la prueba de cordura, tanto para los datos originales de la variable objetivo como en su respectiva versión logarítmica. Las configuraciones y métricas empleadas para la optimización de los modelos fueron:
 	- Ajuste de hiperparámetros usando la librería GridSearchCV para optimizar las combinaciones clave que demanda cada modelo.
 	- Evaluación mediante múltiples pliegues (cv) para asegurar la robustez en las métricas.
 	- **Función objetivo**: Minimización de RMSE
@@ -32,7 +34,7 @@ Se implementaron varios modelos de regresión, tanto para los datos originales d
 	1.- Modelos como LightGBM (log), XGBoost (log) y Bosque Aleatorio (log) son rápidos en ambas etapas, siendo estos los favoritos.
 	2.- Árbol de Regresión (log), el cual también posee tiempos de predicción muy rápidos, se convierte en un buen candidato al igual que los anteriores.
 
-A parte de los anteriores, LightGBM (no logarítmico) también se ha tomado como un posible candidato, uno el cual se puede observar en los outputs del presente repositorio, más precisamente, en la carpeta outputs/models. Si se desean ver otras métricas importantes, en outputs/reports se pueden hallar algunas de estas.
+A parte de los anteriores, LightGBM (no logarítmico) también se ha tomado como un posible candidato, uno el cual se puede observar en los outputs del presente repositorio, más precisamente, en la carpeta [outputs/models](https://github.com/NickGuaramato/car_sales_RustyBargain/tree/main/outputs/models). Si se desean ver otras métricas importantes, en [outputs/reports](https://github.com/NickGuaramato/car_sales_RustyBargain/tree/main/outputs/reports) se pueden hallar algunas de estas.
 
 ## Recomendaciones Finales 🏅
 
