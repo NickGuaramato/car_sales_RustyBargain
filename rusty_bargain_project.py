@@ -337,7 +337,7 @@ df_new_filt.to_csv('outputs/preprocessed/preprocessed_data.csv', index=False)
 
 
 
-#Distribución. Variable objetivo 'price'
+#Distribución. Variable objetivo 'price' (logarítmico)
 log_price = np.log1p(df_new_filt['price'])
 
 plt.figure(figsize=(10, 5))
@@ -490,7 +490,7 @@ df_new_filt.to_csv('outputs/preprocessed/prepro_data_eng_charact.csv', index=Fal
 
 
 
-#ENTRENAMMIENTO DE MODELO
+#ENTRENAMIENTO DE MODELO
 
 #Codificación y Escalado
 categorical_cols = ['vehicle_type', 'gearbox', 'fuel_type', 'brand', 'model', 'not_repaired']
@@ -530,16 +530,27 @@ df_new_filt_OHE[numerical_cols] = scaler.fit_transform(df_new_filt_OHE[numerical
 print('Luego de codificación híbrida y escalado:')
 print(df_new_filt_OHE.head())
 
+#Crear nueva columna con transformación logarítmica para 'price'
+df_new_filt_OHE['log_price'] = log_price
+
+#Verificación estadística después de transformación
+print(df_new_filt_OHE[['price', 'log_price']].describe())
+
 #Características y Objetivo
 #Dividiendo el Dataset y verificando conjunto
 X = df_new_filt_OHE.drop('price', axis=1)
 y = df_new_filt_OHE['price']
+y_log = df_new_filt_OHE['log_price']
 
 #entrenamiento y prueba
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.25, random_state=12345)
 
+#entrenamiento y prueba (transformación logarítmica)
+X_train_log, X_test_log, y_train_log, y_test_log = train_test_split(X, y_log, test_size=0.25, random_state=12345)
+
 #verificando forma
-print(X_train.shape, X_test.shape)
+print('Forma del conjunto no logarítmico:', X_train.shape, X_test.shape)
+print('Forma del conjunto logarítmico:', X_train_log.shape, X_test_log.shape)
 
 #REGRESION LINEAL
 lr_model = LinearRegression()
@@ -547,6 +558,18 @@ lr_model.fit(X_train, y_train)
 lr_predict = lr_model.predict(X_test)
 lr_rmse = mean_squared_error(y_test, lr_predict)**0.5
 print(f'RMSE de Regresión Lineal: {lr_rmse}')
+
+#REGRESION LINEAL LOGARITMICA
+lr_model_log = LinearRegression()
+lr_model_log.fit(X_train_log, y_train_log)
+lr_predict_log = lr_model_log.predict(X_test_log)
+
+#revirtiendo transformación
+lr_predict_original = np.exp(lr_predict_log)
+#RMSE en espacio original
+lr_rmse_original = mean_squared_error(np.exp(y_test_log), lr_predict_original) ** 0.5
+print(f'RMSE de Regresión Lineal es espacio original: {lr_rmse_original}')
+
 
 #ÁRBOL DE DECISIÓN
 #hiperparámetros de árbol de decisión
@@ -565,25 +588,48 @@ dt_grid = GridSearchCV(
     cv=3)
 
 #entrenamos para encontrar mejores hiperparametros
-dt_grid.fit(X_train, y_train)
+"""dt_grid.fit(X_train, y_train)
 #Buscamos mejores hiperparametros que devuelven más bajo RSME
 max_score = dt_grid.cv_results_['mean_test_score'].max()
 index_max_score = np.where(dt_grid.cv_results_['mean_test_score'] == max_score)[0][0]
 
 best_set_of_params = dt_grid.cv_results_['params'][index_max_score]
-print(f'Hiperparámetros recomendados: {best_set_of_params} | Mejor RSME: {-max_score}')
+print(f'Hiperparámetros recomendados: {best_set_of_params} | Mejor RSME: {-max_score}')"""
 
 #Entrenamiento de modelo
 dt_model = DecisionTreeRegressor(random_state=12345, max_depth=6, min_samples_split=2, min_samples_leaf=2)
 dt_model.fit(X_train, y_train)
 dt_predict = dt_model.predict(X_test)
 dt_rmse = mean_squared_error(y_test, dt_predict)**0.5
-print(f'RMSE de Árbol de Decisión: {dt_rmse}')
+print(f'RMSE de Árbol de Regresión: {dt_rmse}')
+
+#ÁRBOL DE REGRESIÓN LOGARÍTMICO
+#entrenamos para encontrar mejores hiperparametros empleando el conjunto logarítmico
+"""dt_grid.fit(X_train_log, y_train_log)
+#Buscamos mejores hiperparametros que devuelven más bajo RSME
+max_score = dt_grid.cv_results_['mean_test_score'].max()
+index_max_score = np.where(dt_grid.cv_results_['mean_test_score'] == max_score)[0][0]
+
+best_set_of_params = dt_grid.cv_results_['params'][index_max_score]
+print(f'Hiperparámetros recomendados: {best_set_of_params} | Mejor RSME: {-max_score}')"""
+
+#Entrenamiento de modelo (logarítmica)
+dt_model_log = DecisionTreeRegressor(random_state=12345, max_depth=6, min_samples_split=8, min_samples_leaf=6)
+dt_model_log.fit(X_train_log, y_train_log)
+dt_predict_log = dt_model_log.predict(X_test_log)
+
+#revirtiendo transformación
+dt_predict_original = np.exp(dt_predict_log)
+#RMSE en espacio original
+dt_rmse_original = mean_squared_error(np.exp(y_test_log), dt_predict_original) ** 0.5
+print(f'RMSE de Árbol de Regresión en espacio original: {dt_rmse_original}')
 
 #BOSQUE ALEATORIO
 rf_params = {
     'n_estimators' : [10, 20, 40],
-    'max_depth': [1, 2, 3, 4, 5, 6] 
+    'max_depth': [1, 2, 3, 4, 5, 6],
+    'min_samples_split': [2, 4, 6, 8],
+    'min_samples_leaf': [2, 4, 6, 8], 
 }
 
 rf_grid = GridSearchCV(
@@ -593,21 +639,43 @@ rf_grid = GridSearchCV(
     cv=3)
 
 #entrenamos para encontrar mejores hiperparametros
-rf_grid.fit(X_train, y_train)
+"""rf_grid.fit(X_train, y_train)
 #Buscamos mejores hiperparametros que devuelven más bajo RSME
 max_score = rf_grid.cv_results_["mean_test_score"].max()
 index_max_score = np.where(rf_grid.cv_results_["mean_test_score"] == max_score)[0][0]
 
 best_set_of_params = rf_grid.cv_results_["params"][index_max_score]
 
-print(f'Hiperparámetros recomendados: {best_set_of_params} | Mejor RSME: {-max_score}')
+print(f'Hiperparámetros recomendados: {best_set_of_params} | Mejor RSME: {-max_score}')"""
 
 #Entrenamiento de modelo
-rf_model = RandomForestRegressor(random_state=12345, max_depth=6, n_estimators=20)
+rf_model = RandomForestRegressor(random_state=12345, max_depth=6, min_samples_leaf=6, min_samples_split=6, n_estimators=40)
 rf_model.fit(X_train, y_train)
 rf_predict = rf_model.predict(X_test)
 rf_rmse = mean_squared_error(y_test, rf_predict)**0.5
 print(f'RMSE de Bosque Aleatorio: {rf_rmse}')
+
+#BOSQUE ALEATORIO LOGARÍTMICO
+"""rf_grid.fit(X_train_log, y_train_log)
+#Buscamos mejores hiperparametros que devuelven más bajo RSME
+max_score = rf_grid.cv_results_["mean_test_score"].max()
+index_max_score = np.where(rf_grid.cv_results_["mean_test_score"] == max_score)[0][0]
+
+best_set_of_params = rf_grid.cv_results_["params"][index_max_score]
+
+print(f'Hiperparámetros recomendados: {best_set_of_params} | Mejor RSME: {-max_score}')"""
+
+#Entrenamiento de modelo logarítmico
+rf_model_log = RandomForestRegressor(random_state=12345, max_depth=6, min_samples_leaf=8, min_samples_split=6, n_estimators=10)
+rf_model_log.fit(X_train_log, y_train_log)
+rf_predict_log = rf_model_log.predict(X_test_log)
+
+#revirtiendo transformación
+rf_predict_original = np.exp(rf_predict_log)
+#RMSE en espacio original
+rf_rmse_original = mean_squared_error(np.exp(y_test_log), rf_predict_original) ** 0.5
+print(f'RMSE de Bosque Aleatorio en espacio original: {rf_rmse_original}')
+
 
 #CATBOOST
 #Características y objetivos antes de OHE
@@ -627,7 +695,8 @@ for column in categorical_columns:
 #Hiperparámetros a ajustar
 cb_params = {
     'depth': [4, 6, 10],
-    'learning_rate': [0.1, 0.2, 0.5]
+    'learning_rate': [0.01, 0.05, 0.1, 0.2],
+    'random_strength': [1, 5, 10]
 }
 
 #Estimador
@@ -639,7 +708,7 @@ cb_grid = GridSearchCV(
     scoring='neg_root_mean_squared_error',
     cv=3
 )
-
+"""
 cb_grid.fit(features_train, target_train)
 
 max_score = cb_grid.cv_results_["mean_test_score"].max()
@@ -647,13 +716,41 @@ index_max_score = np.where(cb_grid.cv_results_["mean_test_score"] == max_score)[
 
 best_params = cb_grid.cv_results_["params"][index_max_score]
 
-print(f'Hiperparámetros recomendados: {best_params} | Mejor RSME: {-max_score}')
+print(f'Hiperparámetros recomendados: {best_params} | Mejor RSME: {-max_score}')"""
 
-cb_model = CatBoostRegressor(random_state=12345, iterations=100, depth=10, learning_rate=0.5, loss_function='RMSE', cat_features=categorical_columns, verbose=False)
+cb_model = CatBoostRegressor(random_state=12345, iterations=100, depth=10, learning_rate=0.2, random_strength=1, loss_function='RMSE', cat_features=categorical_columns, verbose=False)
 cb_model.fit(features_train, target_train)
 cb_predict = cb_model.predict(features_test)
 cb_rmse = mean_squared_error(target_test, cb_predict)**0.5
 print(f'RMSE de CatBoost: {cb_rmse}')
+
+#CATBOOST LOGARÍTMICO
+#Agrego la transformación logarítmica de la variable objetivo
+df_new_filt['log_price'] = log_price
+#variable objetivo logarítmica
+target_log = df_new_filt['log_price']
+
+features_train_log, features_test_log, target_train_log, target_test_log = train_test_split(features, target_log, test_size=0.25, random_state=12345)
+
+"""
+cb_grid.fit(features_train_log, target_train_log)
+
+max_score = cb_grid.cv_results_["mean_test_score"].max()
+index_max_score = np.where(cb_grid.cv_results_["mean_test_score"] == max_score)[0][0]
+
+best_params = cb_grid.cv_results_["params"][index_max_score]
+
+print(f'Hiperparámetros recomendados: {best_params} | Mejor RSME: {-max_score}')"""
+
+cb_model_log = CatBoostRegressor(random_state=12345, iterations=100, depth=6, learning_rate=0.1, random_strength=1, loss_function='RMSE', cat_features=categorical_columns, verbose=False)
+cb_model_log.fit(features_train_log, target_train_log)
+cb_predict_log = cb_model_log.predict(features_test_log)
+
+#revirtiendo transformación
+cb_predict_original = np.exp(cb_predict_log)
+#RMSE en espacio original
+cb_rmse_original = mean_squared_error(np.exp(target_test_log), cb_predict_original) ** 0.5
+print(f'RMSE de CatBoost en espacio original: {cb_rmse_original}')
 
 #XGBOOOST
 #Hiperparametros
@@ -667,8 +764,8 @@ xgb_est = XGBRegressor()
 
 xgb_grid = GridSearchCV(estimator=xgb_est, param_grid=xgb_params, scoring='neg_root_mean_squared_error', cv=3)
 
-"""#Buscamos los mejores hiperparametros
-xgb_grid.fit(X_train, y_train)
+#Buscamos los mejores hiperparametros
+"""xgb_grid.fit(X_train, y_train)
 max_score = xgb_grid.cv_results_["mean_test_score"].max()
 index_max_score = np.where(xgb_grid.cv_results_["mean_test_score"] == max_score)[0][0]
 
@@ -682,6 +779,27 @@ xgb_model.fit(X_train, y_train)
 xgb_predict = xgb_model.predict(X_test)
 xgb_rmse = mean_squared_error(y_test, xgb_predict)**0.5
 print(f'RMSE de XGBoost: {xgb_rmse}')
+
+#XGBOOST LOGARÍTMICO
+#Buscamos los mejores hiperparametros en el espacio logarítmico
+"""xgb_grid.fit(X_train_log, y_train_log)
+max_score = xgb_grid.cv_results_["mean_test_score"].max()
+index_max_score = np.where(xgb_grid.cv_results_["mean_test_score"] == max_score)[0][0]
+
+best_params = xgb_grid.cv_results_["params"][index_max_score]
+
+print(f'Hiperparámetros recomendados: {best_params} | Mejor RSME: {-max_score}')"""
+
+#Entrenamos modelo con hiperparametros en espacio logarítmico
+xgb_model_log = XGBRegressor(random_state=12345, max_depth=4, n_estimators=100, learning_rate=0.1, subsample=0.8)
+xgb_model_log.fit(X_train_log, y_train_log)
+xgb_predict_log = xgb_model_log.predict(X_test_log)
+
+#revirtiendo transformación
+xgb_predict_original = np.exp(xgb_predict_log)
+#RMSE en espacio original
+xgb_rmse_original = mean_squared_error(np.exp(y_test_log), xgb_predict_original) ** 0.5
+print(f'RMSE de XGBoost en espacio original: {xgb_rmse_original}')
 
 #LIGHTGBM
 #Igual que catboost, tomo el conjunto para antes de OHE
@@ -701,7 +819,7 @@ LGBM_params = {
     'subsample': [0.6, 0.7, 0.8]
 }
 
-LGBM_est = LGBMRegressor()
+LGBM_est = LGBMRegressor(verbose=-1)
 
 LGBM_grid = GridSearchCV(
     estimator=LGBM_est,
@@ -720,16 +838,46 @@ best_params = LGBM_grid.cv_results_["params"][index_max_score]
 
 print(f'Hiperparámetros recomendados: {best_params} | Mejor RECM: {-max_score}')"""
 
-LGBM_model = LGBMRegressor(n_estimators=300, learning_rate=0.2, num_leaves=30, max_depth=10, subsample=0.6, random_state=12345)
+LGBM_model = LGBMRegressor(n_estimators=300, learning_rate=0.1, num_leaves=30, max_depth=10, subsample=0.6, random_state=12345)
 LGBM_model.fit(X_LGBM_train, y_LGBM_train)
 LGBM_predict = LGBM_model.predict(X_LGBM_test)
 LGBM_rmse = mean_squared_error(y_LGBM_test, LGBM_predict)**0.5
 print(f'RMSE de LightGBM: {LGBM_rmse}')
 
+#LGBM LOGARÍTMICO
+#variable objetivo logarítmica
+y_LGBM_log = df_new_filt['log_price']
+
+X_LGBM_train_log, X_LGBM_test_log, y_LGBM_train_log, y_LGBM_test_log = train_test_split(X_LGBM, y_LGBM_log, test_size=0.25, random_state=12345)
+
+"""
+LGBM_grid.fit(X_LGBM_train_log, y_LGBM_train_log)
+
+max_score = LGBM_grid.cv_results_["mean_test_score"].max()
+index_max_score = np.where(LGBM_grid.cv_results_["mean_test_score"] == max_score)[0][0]
+
+best_params = LGBM_grid.cv_results_["params"][index_max_score]
+
+print(f'Hiperparámetros recomendados: {best_params} | Mejor RSME: {-max_score}')"""
+
+LGBM_model_log = LGBMRegressor(n_estimators=100, learning_rate=0.1, num_leaves=30, max_depth=5, subsample=0.6, random_state=12345)
+LGBM_model_log.fit(X_LGBM_train_log, y_LGBM_train_log)
+LGBM_predict_log = LGBM_model_log.predict(X_LGBM_test_log)
+
+#revirtiendo transformación
+LGBM_predict_original = np.exp(LGBM_predict_log)
+#RMSE en espacio original
+LGBM_rmse_original = mean_squared_error(np.exp(y_LGBM_test_log), LGBM_predict_original) ** 0.5
+print(f'RMSE de LightGBM en espacio original: {LGBM_rmse_original}')
+
+
 #Guardado de modelos
 models = {
-    'LGBM_model': LGBM_model,
-    'CatBoost_model': cb_model
+    'LGBM_model_log': LGBM_model_log,
+    'XGBoost_model_log': xgb_model_log,
+    'RF_model_log': rf_model_log,
+    'DT_model_log': dt_model_log,
+    'LGBM_model': LGBM_model
 }
 
 for name, model in models.items():
@@ -740,41 +888,82 @@ for name, model in models.items():
 #ANÁLISIS DE MODELOS
 #Ordenando resultado en un DataFrame para mejor visualización
 data_models = {
-    'modelo': ['Regresión Lineal', 'Árbol de Decisión', 'Bosque Aleatorio', 'CatBoost', 'XGBoost', 'LightGBM'],
-    'tiempo_ajuste_hiperparámetros': [0.0423, 0.307, 4.39, 21.8, 39.4, 4.96],
-    'tiempo_de_entrenamiento': [0.0419, 0.305, 4.39, 21.8, 39.8, 4.96],
-    'tiempo_de_prueba': [0.0357, 0.0711, 0.0778, 0.0855, 0.418, 1.51],
-    'RMSE': [3155.4428640331175, 2328.080497374315, 2259.878030906163, 1615.3803898078384, 1615.4275074653872, 1575.5393829849745]
+    'modelo': [
+        'Regresión Lineal', 'Regresión Lineal (log)', 
+        'Árbol de Regresión', 'Árbol de Regresión (log)', 
+        'Bosque Aleatorio', 'Bosque Aleatorio (log)', 
+        'CatBoost', 'CatBoost (log)', 
+        'XGBoost', 'XGBoost (log)', 
+        'LightGBM', 'LightGBM (log)'
+    ],
+    'tiempo_entrenamiento_s': [
+        0.372, 0.711, 
+        0.771, 0.723, 
+        10.9, 4.59, 
+        23.9, 12, 
+        7.57, 3.67, 
+        10.6, 5.19
+    ],
+    'tiempo_prediccion_s': [
+        0.0647, 0.0507, 
+        0.171, 0.0562, 
+        0.150, 0.0503, 
+        0.137, 0.117, 
+        0.384, 0.198, 
+        1.21, 0.296
+    ],
+    'RMSE': [
+        3060.6223, 5.762930581907668e-11, 
+        2335.5843, 120.1818, 
+        2258.3020, 118.2869, 
+        1622.3060, 5001.0582, 
+        1605.2631, 43.7402, 
+        1569.2482, 21.0746
+    ],
+    'logaritmico': [
+        False, True, 
+        False, True, 
+        False, True, 
+        False, True, 
+        False, True, 
+        False, True
+    ]
 }
 
 models_table = pd.DataFrame(data_models)
-
 print(models_table)
+
+#Guardo la tabla
+models_table.to_csv('outputs/reports/models_table_result.csv', index=True)
+
 
 #GRAFICA
 fig, axs = plt.subplots(nrows=2, ncols=2, figsize=(20, 12))
-fig.suptitle('Análisis de velocidad y calidad por modelo', fontsize=19)
+fig.suptitle('Análisis de Velocidad y Calidad por Modelo', fontsize=19)
 plt.subplots_adjust(hspace=0.4)
 
-# Gráfico 1: Tiempo de ajuste de hiperparámetros
-axs[0, 0].barh(models_table['modelo'], models_table['tiempo_ajuste_hiperparámetros'], color='b')
-axs[0, 0].set_xlabel('Tiempo de Ajuste de Hiperparámetros (s)')
-axs[0, 0].set_title('Tiempo de Ajuste de Hiperparámetros por Modelo')
+#Gráfico Tiempo de entrenamiento
+axs[0, 0].barh(models_table['modelo'], models_table['tiempo_entrenamiento_s'], color='blue')
+axs[0, 0].set_xlabel('Tiempo de Entrenamiento (s)')
+axs[0, 0].set_title('Tiempo de Entrenamiento por Modelo')
 
-# Gráfico 2: Tiempo de entrenamiento
-axs[0, 1].barh(models_table['modelo'], models_table['tiempo_de_entrenamiento'], color='g')
-axs[0, 1].set_xlabel('Tiempo de Entrenamiento (s)')
-axs[0, 1].set_title('Tiempo de Entrenamiento por Modelo')
+#Gráfico Tiempo de predicción
+axs[0, 1].barh(models_table['modelo'], models_table['tiempo_prediccion_s'], color='green')
+axs[0, 1].set_xlabel('Tiempo de Predicción/Ajuste (s)')
+axs[0, 1].set_title('Tiempo de Predicción/Ajuste por Modelo')
 
-# Gráfico 3: Tiempo de prueba
-axs[1, 0].barh(models_table['modelo'], models_table['tiempo_de_prueba'], color='orange')
-axs[1, 0].set_xlabel('Tiempo de Prueba (s)')
-axs[1, 0].set_title('Tiempo de Prueba por Modelo')
+#Gráfico RMSE
+axs[1, 0].barh(models_table['modelo'], models_table['RMSE'], color='red')
+axs[1, 0].set_xlabel('RMSE')
+axs[1, 0].set_title('RMSE por Modelo')
 
-# Gráfico 4: RMSE
-axs[1, 1].barh(models_table['modelo'], models_table['RMSE'], color='r')
-axs[1, 1].set_xlabel('RMSE')
-axs[1, 1].set_title('RMSE por Modelo')
+#Gráfico Comparativa tiempos totales
+models_table['tiempo_total_s'] = models_table['tiempo_entrenamiento_s'] + models_table['tiempo_prediccion_s']
+axs[1, 1].bar(models_table['modelo'], models_table['tiempo_total_s'], color='purple')
+axs[1, 1].set_ylabel('Tiempo Total (s)')
+axs[1, 1].set_title('Comparativa de Tiempos Totales (Entrenamiento + Predicción)')
+axs[1, 1].tick_params(axis='x', rotation=45)
+
+plt.tight_layout(rect=[0, 0.03, 1, 0.95])
 plt.savefig(f'outputs/plots/models_analysis.png')
-# Mostrar el gráfico
 plt.show()
