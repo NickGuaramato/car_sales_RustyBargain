@@ -52,3 +52,5 @@ Luego de evaluar los 3 puntos importantes y requeridos en este proyecto, los mej
 
 # Autor ✨
 Nick A. Guaramato 
+[GitHub](https://github.com/NickGuaramato) | [LinkedIn](https://www.linkedin.com/in/nick-a-guaramato)
+
