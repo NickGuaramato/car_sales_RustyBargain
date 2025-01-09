@@ -24,6 +24,15 @@ features = df_new_filt.drop('price', axis=1)
 target = df_new_filt['price']
 
 features_train, features_test, target_train, target_test = train_test_split(features, target, test_size=0.25, random_state=12345)
+
+#Selecciono sólo las columnas cuyas características son categóricas
+categorical_columns = features_train.select_dtypes(include=['object']).columns.tolist()
+
+#Tipo 'category'
+for column in categorical_columns:
+    features_train.loc[:, column] = features_train.loc[:, column].astype('category')
+    features_test.loc[:, column] = features_test.loc[:, column].astype('category')
+
 #CATBOOST LOGARÍTMICO
 #Agrego la transformación logarítmica de la variable objetivo
 df_new_filt['log_price'] = log_price
@@ -31,8 +40,6 @@ df_new_filt['log_price'] = log_price
 target_log = df_new_filt['log_price']
 
 features_train_log, features_test_log, target_train_log, target_test_log = train_test_split(features, target_log, test_size=0.25, random_state=12345)
-
-
 
 #LIGHTGBM
 #Igual que catboost, tomo el conjunto para antes de OHE

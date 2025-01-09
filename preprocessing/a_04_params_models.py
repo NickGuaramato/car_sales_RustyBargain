@@ -1,4 +1,23 @@
 #params_models
+import numpy as np
+
+from sklearn.model_selection import GridSearchCV
+from sklearn.tree import DecisionTreeRegressor
+from sklearn.ensemble import RandomForestRegressor
+
+from catboost import CatBoostRegressor
+from xgboost import XGBRegressor
+from lightgbm import LGBMRegressor
+
+from a_03_train_test_split import features_test, features_train, target_train
+from a_03_train_test_split import features_train_log, target_train_log
+
+from a_03_train_test_split import X_train, y_train
+from a_03_train_test_split import X_train_log, y_train_log
+
+from a_03_train_test_split import X_LGBM_train, y_LGBM_train
+from a_03_train_test_split import X_LGBM_train_log, y_LGBM_train_log
+
 
 #ÁRBOL DE REGRESIÓN
 #hiperparámetros de árbol de decisión

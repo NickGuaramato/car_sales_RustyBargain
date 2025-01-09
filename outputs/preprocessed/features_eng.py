@@ -17,6 +17,9 @@ df_new_filt.reset_index(drop=True, inplace=True)
 if 'mileage' in df_new.columns:
     df_new_filt['mileage_per_year'] = df_new_filt['mileage'] / df_new_filt['vehicle_age']
 
+print(df_new_filt)
+print()
+print(df_new_filt['mileage_per_year'].describe())
 
 #Último ajuste
 df_new_filt = df_new_filt.drop(['registration_month'], axis=1)
