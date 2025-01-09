@@ -1,4 +1,5 @@
 #features_eng
+from a_00_Preprocessed import df_new_filt, df_new
 
 #INGENIERÍA DE CARACTERÍSTICAS
 actual_year = 2024
@@ -29,5 +30,3 @@ print(df_new_filt['mileage_per_year'].describe())
 
 #Último ajuste
 df_new_filt = df_new_filt.drop(['registration_month'], axis=1)
-#observo cambios
-print(df_new_filt.columns)

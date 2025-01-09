@@ -1,4 +1,9 @@
 #encode
+import pandas as pd
+from sklearn.preprocessing import StandardScaler, OneHotEncoder
+
+from a_00_Preprocessed import log_price
+from a_01_features_eng import df_new_filt
 
 #Codificación y Escalado
 categorical_cols = ['vehicle_type', 'gearbox', 'fuel_type', 'brand', 'model', 'not_repaired']

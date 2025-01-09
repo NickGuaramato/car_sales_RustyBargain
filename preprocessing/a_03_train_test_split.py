@@ -1,4 +1,9 @@
 #train_test_split
+from sklearn.model_selection import train_test_split
+
+from a_00_Preprocessed import categorical_columns
+from a_01_features_eng import df_new_filt
+from a_02_encode import df_new_filt_OHE, log_price
 
 #ENTRENAMIENTO DE MODELO
 #Características y Objetivo
@@ -12,8 +17,6 @@ X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.25, random
 
 #entrenamiento y prueba (transformación logarítmica)
 X_train_log, X_test_log, y_train_log, y_test_log = train_test_split(X, y_log, test_size=0.25, random_state=12345)
-
-
 
 #CATBOOST
 #Características y objetivos antes de OHE
