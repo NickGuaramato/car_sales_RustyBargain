@@ -1,5 +1,6 @@
 #models
 #MODELOS SELECCIONADOS
+import pandas as pd
 import numpy as np
 
 from sklearn.metrics import mean_squared_error
@@ -14,6 +15,8 @@ from a_03_train_test_split import X_train_log, y_train_log, X_test_log, y_test_l
 
 from a_03_train_test_split import X_LGBM_train, y_LGBM_train, X_LGBM_test, y_LGBM_test
 from a_03_train_test_split import X_LGBM_train_log, y_LGBM_train_log, X_LGBM_test_log, y_LGBM_test_log
+
+from joblib import dump
 
 #LGBM_model
 
@@ -79,3 +82,25 @@ models = {
 for name, model in models.items():
     dump(model, f'outputs/models/{name}.joblib')
     print(f"Modelo {name} guardado como outputs/models/{name}.joblib")
+
+#Metrics Results
+
+data_models = pd.DataFrame({
+    'modelo': [
+        'Árbol de Regresión (log)', 'Bosque Aleatorio (log)', 
+        'XGBoost (log)', 
+        'LightGBM', 'LightGBM (log)'
+    ],
+    'tiempo_entrenamiento_s': [
+        0.723, 4.59, 3.67, 10.6, 5.19
+    ],
+    'tiempo_prediccion_s': [
+        0.0562, 0.0503, 0.198, 1.21, 0.296
+    ],
+    'RMSE': [
+        120.1818, 118.2869, 43.7402, 1569.2482, 21.0746
+    ],
+    'logaritmico': [
+        True, True, True, False, True
+    ]
+})
