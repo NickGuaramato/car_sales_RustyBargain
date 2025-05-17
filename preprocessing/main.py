@@ -1,3 +1,12 @@
+#Orquestador
+import os
+
+#carpetas para guardado de gráficos, modelos, métricas y reportes de clasificación
+os.makedirs('outputs/models', exist_ok=True)
+os.makedirs('outputs/plots', exist_ok=True)
+os.makedirs('outputs/reports', exist_ok=True)
+os.makedirs('outputs/preprocessed', exist_ok=True)
+
 import warnings
 warnings.filterwarnings("ignore")
 

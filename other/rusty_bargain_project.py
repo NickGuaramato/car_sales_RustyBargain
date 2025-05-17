@@ -40,8 +40,8 @@ print('Estadística descriptiva de DataFrame:')
 print(df.describe())
 
 #Exportanción de estadísticas descriptiva en datos originales
-df_stats = df.describe(include='all')
-df_stats.to_csv('outputs/reports/original_data_statistics.csv', index=True)
+df_stats_original = df.describe(include='all')
+df_stats_original.to_csv('outputs/reports/original_data_statistics.csv', index=True)
 
 
 #Cambiando formato de columnas para una mejor exploración de datos
@@ -303,7 +303,7 @@ def filling_p(row):
     power = row['power']
 
     if pd.isna(power):
-        return model_brand_dict.get(model, np.nan)
+        return power_model_dict.get(model, np.nan)
     return power
 
 #Aplico y almaceno
@@ -329,8 +329,8 @@ df_new_filt.reset_index(drop=True, inplace=True)
 print(df_new_filt.info())
 
 #Estadística descriptiva luego de limpieza de datos. Guardando
-df_stats = df_new_filt.describe(include='all')
-df_stats.to_csv('outputs/reports/preprocessed_data_statistics.csv', index=True)
+df_stats_cleaned = df_new_filt.describe(include='all')
+df_stats_cleaned.to_csv('outputs/reports/preprocessed_data_statistics.csv', index=True)
 
 #Guardando dataset con datos preprocesados.
 df_new_filt.to_csv('outputs/preprocessed/preprocessed_data.csv', index=False)
@@ -452,7 +452,6 @@ plt.show()
 #INGENIERÍA DE CARACTERÍSTICAS
 actual_year = 2024
 df_new_filt['vehicle_age'] = actual_year - df_new_filt['registration_year']
-df_new_filt.rename(columns={'registration_year' : 'vehicle_age'})
 print(df_new_filt)
 print()
 print(df_new_filt['vehicle_age'].describe())

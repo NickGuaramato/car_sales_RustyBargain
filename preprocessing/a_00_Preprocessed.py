@@ -1,208 +1,137 @@
-#Preprocesado
+#a_00_preprocesado
 
 import pandas as pd
 import numpy as np
+from typing import Tuple
+from utils import fill_missing_values, normalize_names
 
-df = pd.read_csv("dataset/car_data.csv")
-
-#Cambiando formato de columnas para una mejor exploración de datos
-df.columns = df.columns.str.replace(r'([A-Z])', r'_\1', regex=True).str.strip('_').str.lower()
+def load_data(path: str) -> pd.DataFrame:
+    df = pd.read_csv(path)
+    return normalize_names(df)#df = pd.read_csv("dataset/car_data.csv")
 
 #Cambiando tipo de datos
-date_col = df[['date_crawled', 'date_created', 'last_seen']]
-category_col = df[['vehicle_type', 'fuel_type', 'gearbox']]
-for col in date_col:
-    df[col] = pd.to_datetime(df[col], format= '%d/%m/%Y %H:%M')
+def convert_data_types(df: pd.DataFrame) -> pd.DataFrame:
+    date_col = df[['date_crawled', 'date_created', 'last_seen']] 
+    category_col = df[['vehicle_type', 'fuel_type', 'gearbox']] 
     
-for col in category_col:
-    df[col] = df[col].astype('category')
+    for col in date_col:
+        df[col] = pd.to_datetime(df[col], format= '%d/%m/%Y %H:%M') 
+    for col in category_col:
+        df[col] = df[col].astype('category')
+    
+    return df
 
 #Eliminando columnas no necesarias
-df_new = df.drop(['number_of_pictures','date_crawled', 'date_created', 'last_seen', 'postal_code'], axis=1)
+def unnecessary_columns(df: pd.DataFrame) -> pd.DataFrame:
+    columns_to_drop = ['number_of_pictures',
+                       'date_crawled', 
+                       'date_created', 
+                       'last_seen', 
+                       'postal_code']
+    return df.drop(columns_to_drop, axis=1)
 
 #Tratando valores duplicados
-#Chequeamos la duplicidad de los mismos para saber si eliminarlos o no
-dup_row = df_new[df_new.duplicated(keep=False)]
-#keep=False asegura que todas las instancias duplicadas se marquen, no solo las adicionales.
-
-dup_row_sorted = dup_row.sort_values(list(df_new.columns))
-
-#Eliminando duplicados
-df_new.drop_duplicates(inplace= True)
+def remove_duplicates(df: pd.DataFrame) -> pd.DataFrame:
+    return df.drop_duplicates()
 
 #Filtrando y acotando datos para columna del año de registro (registration_year)
-df_new_filt = df_new.query('1900 <= registration_year <= 2024')
-
+def filter_data(df: pd.DataFrame) -> pd.DataFrame:
+    df = df.query('1900 <= registration_year <= 2024')
 #filtrando precio para valores mayores o iguales a 100 (price)
-df_new_filt = df_new_filt.query('price >= 100')
-
-#Limitando valores en la columna de potencia  y sustituyendo valores atípicos con valores NaN(power)
-df_new_filt = df_new_filt.query('power <= 2000')
+    df = df.query('price >= 100')
+#Limitando valores en la columna de potencia  y sustituyendo valores atípicos con valores NaN(power) 
+    df = df.query('power <= 2000')
 #reemplazo
-df_new_filt.loc[df_new_filt['power'] < 45, 'power'] = np.nan
+    df.loc[df['power'] < 45, 'power'] = np.nan
 
 #Tratando valores atípicos. Mes 0 (registration_month)
 #Reemplanzando con la mediana
-df_new_filt.loc[df_new_filt['registration_month'] == 0, 'registration_month'] = df_new_filt['registration_month'].median()
-df_new_filt['registration_month'] = df_new_filt['registration_month'].astype('int')
+    df.loc[df['registration_month'] == 0, 'registration_month'] = df['registration_month'].median()
+    df['registration_month'] = df['registration_month'].astype('int')
 
-#Función moda para usar en columnas de datos categóricos faltantes
-def mode_f(var):#creo una función para la moda
-    return var.mode().iloc[0] if len(var) > 0 else np.nan
+    return df
 
-vehicle_values = df_new_filt.dropna(subset=['vehicle_type', 'model'])
+#Función moda. Usando en columnas de datos categóricos faltantes
+def process_missing_values(df: pd.DataFrame) -> pd.DataFrame:
+    #vehicle_type
+    df = fill_missing_values(
+        df,
+        groups_cols=['brand', 'model'],
+        target_col='vehicle_type'
+    )
+    #gearbox
+    df = fill_missing_values(
+        df,
+        groups_cols=['brand', 'model'],
+        target_col='gearbox'
+    )
+    #fuel_type
+    df['fuel_type'] = df['fuel_type'].replace('petrol', 'gasoline')
+    df = fill_missing_values(
+        df,
+        ['model'],
+        'fuel_type'
+    )
+    #model
+    df = fill_missing_values(
+        df,
+        groups_cols=['brand', 'registration_year'],
+        target_col='model'
+    )
+    #filtrando a power
+    df['power'] = pd.to_numeric(df['power'], errors='coerce')#cambio tipo de dato a númerico
+    df = fill_missing_values(
+        df,
+        ['model'],
+        'power',
+        method='median'
+    )
+    return df.dropna(subset=['not_repaired'])
 
-vehicle_model = vehicle_values.groupby(['brand','model'])['vehicle_type'].agg(mode_f).reset_index()
-vehicle_model_dict = vehicle_model.set_index(['brand', 'model'])['vehicle_type'].to_dict()
-
-def filling_v(row):
-    model = row['model']
-    vehicle = row['vehicle_type']
-    brand = row['brand']
-
-    if pd.isna(vehicle):
-        return vehicle_model_dict.get((brand, model), np.nan)
-    return vehicle
-
-#aplico función al Dataset y almaceno en columna
-df_new_filt['vehicle_type'] = df_new_filt.apply(filling_v, axis=1)
-
-#Compruebo existencia de valores ausentes luego de la función
-no_value_v = df_new_filt[df_new_filt['vehicle_type'].isna()]
-
-#elimino los que no pudieron ser rellenados
-df_new_filt = df_new_filt.dropna(subset=['vehicle_type'])
-no_nan_v = df_new_filt[df_new_filt['vehicle_type'].isna()]
-
-#Filtrando columnas
-gearbox_values = df_new_filt.dropna(subset=['gearbox', 'model'])
-
-gearbox_model = gearbox_values.groupby(['brand', 'model'])['gearbox'].agg(mode_f).reset_index()
-gearbox_model_dict = gearbox_model.set_index(['brand', 'model'])['gearbox'].to_dict()
-
-def filling_g(row):#creo función que llenará la columna con los valores faltantantes
-    model = row['model']
-    gearbox = row['gearbox']
-    brand = row['brand']
-
-    if pd.isna(gearbox):
-        return gearbox_model_dict.get((brand, model), np.nan)
-    return gearbox
-
-#aplico función a Dataset y guardo en columna del mismo
-df_new_filt['gearbox'] = df_new_filt.apply(filling_g, axis=1)
-
-#Comprobando si existen valores sin rellenar
-no_value_g = df_new_filt[df_new_filt['gearbox'].isna()]
-
-df_new_filt = df_new_filt.dropna(subset=['gearbox'])
-no_nan_g = df_new_filt[df_new_filt['gearbox'].isna()]
-
-#Reemplazo
-df_new_filt['fuel_type'] = df_new_filt['fuel_type'].replace('petrol', 'gasoline')
-
-#Filtro
-fuel_values = df_new_filt.dropna(subset=['fuel_type', 'model'])
-
-fuel_model = fuel_values.groupby(['model'])['fuel_type'].agg(mode_f).reset_index()
-fuel_model_dict = fuel_model.set_index(['model'])['fuel_type'].to_dict()
-
-def filling_f(row):#creo función
-    model = row['model']
-    fuel = row['fuel_type']
-    
-    if pd.isna(fuel):
-        return fuel_model_dict.get(model, np.nan)
-    return fuel
-
-#aplico función al Dataset y almaceno en columna
-df_new_filt['fuel_type'] = df_new_filt.apply(filling_f, axis=1)
-
-#Compruebo existencia de valores ausentes luego de la función
-no_value_f = df_new_filt[df_new_filt['fuel_type'].isna()]
-
-df_new_filt = df_new_filt.dropna(subset=['fuel_type'])
-no_nan_f = df_new_filt[df_new_filt['fuel_type'].isna()]
-
-model_values = df_new_filt.dropna(subset=['model'])
-
-model_brand = model_values.groupby(['brand','registration_year'])['model'].agg(mode_f).reset_index()
-model_brand_dict = model_brand.set_index(['brand', 'registration_year'])['model'].to_dict()
-
-def filling_m(row):
-    model = row['model']
-    year = row['registration_year']
-    brand = row['brand']
-
-    if pd.isna(model):
-        return model_brand_dict.get((brand, model), np.nan)
-    return model
-
-#aplico función al Dataset y almaceno en columna
-df_new_filt['model'] = df_new_filt.apply(filling_m, axis=1)
-
-#Compruebo existencia de valores ausentes luego de la función
-no_value_m = df_new_filt[df_new_filt['model'].isna()]
-
-df_new_filt = df_new_filt.dropna(subset=['model'])
-no_nan_m = df_new_filt[df_new_filt['model'].isna()]
-
-#filtrando
-df_new_filt['power'] = pd.to_numeric(df_new_filt['power'], errors='coerce')#cambio tipo de dato a númerico
-power_values = df_new_filt.dropna(subset=['power'])
-
-power_model = power_values.groupby(['model'])['power'].median().reset_index()
-power_model_dict = power_model.set_index(['model'])['power'].to_dict()
-
-def filling_p(row):
-    model = row['model']
-    power = row['power']
-
-    if pd.isna(power):
-        return model_brand_dict.get(model, np.nan)
-    return power
-
-#Aplico y almaceno
-df_new_filt['power'] = df_new_filt.apply(filling_p, axis=1)
-
-#compruebo existencia de ausentes luego de aplicada la función
-no_value_p = df_new_filt[df_new_filt['power'].isna()]
-
-df_new_filt = df_new_filt.dropna(subset=['power'])
-no_nan_p = df_new_filt[df_new_filt['power'].isna()]
-
-#elimino
-df_new_filt = df_new_filt.dropna(subset=['not_repaired'])
-no_nan_not_r = df_new_filt[df_new_filt['power'].isna()]
-
-#Nuevo DataFrame
-df_new_filt.reset_index(drop=True, inplace=True)
-
-#Guardando dataset con datos preprocesados.
-df_new_filt.to_csv('outputs/preprocessed/preprocessed_data.csv', index=False)
-
-#Distribución. Variable objetivo 'price' (logarítmico)
-log_price = np.log1p(df_new_filt['price'])
-
-#Resumen de estadística descriptiva del precio original respecto a la transformación
+def analyze_data(df: pd.DataFrame) -> dict:
+    #Distribución. Variable objetivo 'price' (logarítmico)
+    log_price = np.log1p(df['price'])
+    #Resumen de estadística descriptiva del precio original respecto a la transformación
 #Estadísticas descriptivas del precio original
+    stats = {
+        "price_stats": pd.DataFrame({
+            "Precio Original": df['price'].describe(),
+            "Precio Transformado (Log)": log_price.describe()
+        }),
+        #Análisis de distribución de columnas categóricas
+        
+        "categorical_columns" : {
+            col:df.groupby(col)['price'].mean().sort_values(ascending=False)
+            for col in ['vehicle_type', 'fuel_type', 'gearbox', 'not_repaired', 'brand']
+        },
+        #Análisis de distribución de columnas númericas
+        
+        "numeric_columns": df[['registration_year', 'power', 'registration_month']].describe()
+        }
+    #luego de limipieza(estadísticas)
+    stats["cleaned_stats"] = df.describe(include='all')
+    stats["cleaned_stats"].to_csv('outputs/reports/preprocessed_data_statistics.csv')
+    
+    stats.to_csv('outputs/reports/stats_price(ori)_price(log).csv', index=True)
 
-original_price = df_new_filt['price'].describe()
+    return stats
 
-#Estadísticas descriptivas del precio transformado
-log_price_stats = log_price.describe()
+def preprocess_data(input_path: str) -> pd.DataFrame:
+    #estadisticas de dataset original
+    df_raw = pd.read_csv(input_path)
+    df_raw.describe(include='all').to_csv('outputs/reports/original_data_statistics.csv', index=True)
+    #ejecución de todo el pipeline
+    df = load_data(input_path)
+    df = convert_data_types(df)
+    df = unnecessary_columns(df)
+    df= remove_duplicates(df)
+    
+    df.describe(include='all').to_csv('outputs/reports/unduplicated_data_statistics.csv', index=True)
 
-#guardar estadísticas
-estadisticas = pd.DataFrame({
-    "Precio Original": original_price,
-    "Precio Transformado (Log)": log_price_stats
-})
+    df = filter_data(df)
+    df = process_missing_values(df)
 
-#Análisis de distribución de columnas categóricas
-categorical_columns = ['vehicle_type', 'fuel_type', 'gearbox', 'not_repaired', 'brand']
+    stats = analyze_data(df)
 
-for col in categorical_columns:
-    mean_price = df_new_filt.groupby(col)['price'].mean().sort_values(ascending=False)
-
-#Análisis de distribución de columnas númericas
-numeric_columns = ['registration_year', 'power', 'registration_month']
+    df.to_csv('outputs/preprocessed/preprocessed_data.csv', index=False)#guardo con datos preprocesados
+    return df, stats
