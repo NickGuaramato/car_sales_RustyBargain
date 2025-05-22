@@ -3,6 +3,8 @@ import pandas as pd
 import numpy as np
 from typing import Optional
 
+from utils import directs
+
 #INGENIERÍA DE CARACTERÍSTICAS
 def vehicle_age(df: pd.DataFrame, current_year: int = 2024, fixed_outlier: Optional[int] = 114) -> pd.DataFrame:
     df = df.copy()
@@ -23,6 +25,7 @@ def mileage_per_year(df: pd.DataFrame) -> pd.DataFrame:
     return df
 
 def features_engineer(df: pd.DataFrame) -> pd.DataFrame:
+    directs()
     df = vehicle_age(df)
     df= mileage_per_year(df)
     #último ajuste
@@ -31,6 +34,6 @@ def features_engineer(df: pd.DataFrame) -> pd.DataFrame:
     df.describe(include='all').to_csv('outputs/reports/final_statistics_data.csv', index=True)
 
     #guardado con nuevas caracteristicas
-    df.to_csv('outputs/preprocessed/prepro_data_eng_charact.csv', index=False)
+    df.to_csv('outputs/preprocessed/prepro_data_with_eng_charact.csv', index=False)
 
     return df

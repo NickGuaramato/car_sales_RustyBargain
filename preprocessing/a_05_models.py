@@ -3,104 +3,123 @@
 import pandas as pd
 import numpy as np
 
+from typing import Any, Dict, List, Optional, Tuple
+
 from sklearn.metrics import mean_squared_error
 
 from sklearn.tree import DecisionTreeRegressor
 from sklearn.ensemble import RandomForestRegressor
 
+from sklearn.base import clone
+
 from xgboost import XGBRegressor
 from lightgbm import LGBMRegressor
 
-from a_03_train_test_split import X_train_log, y_train_log, X_test_log, y_test_log
-
-from a_03_train_test_split import X_LGBM_train, y_LGBM_train, X_LGBM_test, y_LGBM_test
-from a_03_train_test_split import X_LGBM_train_log, y_LGBM_train_log, X_LGBM_test_log, y_LGBM_test_log
-
 from joblib import dump
 
-#LGBM_model
-
-#entrenamiento
-LGBM_model = LGBMRegressor(n_estimators=300, learning_rate=0.1, num_leaves=30, max_depth=10, subsample=0.6, random_state=12345)
-LGBM_model.fit(X_LGBM_train, y_LGBM_train)
-LGBM_predict = LGBM_model.predict(X_LGBM_test)
-LGBM_rmse = mean_squared_error(y_LGBM_test, LGBM_predict)**0.5
-
-#entrenamiento logarítmico
-LGBM_model_log = LGBMRegressor(n_estimators=100, learning_rate=0.1, num_leaves=30, max_depth=5, subsample=0.6, random_state=12345)
-LGBM_model_log.fit(X_LGBM_train_log, y_LGBM_train_log)
-LGBM_predict_log = LGBM_model_log.predict(X_LGBM_test_log)
-
-#revirtiendo transformación
-LGBM_predict_original = np.exp(LGBM_predict_log)
-#RMSE en espacio original
-LGBM_rmse_original = mean_squared_error(np.exp(y_LGBM_test_log), LGBM_predict_original) ** 0.5
-
-
-#XGBoost Logarítmico
-#Entrenamos modelo con hiperparametros en espacio logarítmico
-xgb_model_log = XGBRegressor(random_state=12345, max_depth=4, n_estimators=100, learning_rate=0.1, subsample=0.8)
-xgb_model_log.fit(X_train_log, y_train_log)
-xgb_predict_log = xgb_model_log.predict(X_test_log)
-
-#revirtiendo transformación
-xgb_predict_original = np.exp(xgb_predict_log)
-#RMSE en espacio original
-xgb_rmse_original = mean_squared_error(np.exp(y_test_log), xgb_predict_original) ** 0.5
-
-#BOSQUE ALEATORIO
-#Entrenamiento de modelo logarítmico
-rf_model_log = RandomForestRegressor(random_state=12345, max_depth=6, min_samples_leaf=8, min_samples_split=6, n_estimators=10)
-rf_model_log.fit(X_train_log, y_train_log)
-rf_predict_log = rf_model_log.predict(X_test_log)
-
-#revirtiendo transformación
-rf_predict_original = np.exp(rf_predict_log)
-#RMSE en espacio original
-rf_rmse_original = mean_squared_error(np.exp(y_test_log), rf_predict_original) ** 0.5
-
-#ÁRBOL DE REGRESIÓN
-#Entrenamiento de modelo (logarítmica)
-dt_model_log = DecisionTreeRegressor(random_state=12345, max_depth=6, min_samples_split=8, min_samples_leaf=6)
-dt_model_log.fit(X_train_log, y_train_log)
-dt_predict_log = dt_model_log.predict(X_test_log)
-
-#revirtiendo transformación
-dt_predict_original = np.exp(dt_predict_log)
-#RMSE en espacio original
-dt_rmse_original = mean_squared_error(np.exp(y_test_log), dt_predict_original) ** 0.5
-
-#Guardado de modelos para uso
-models = {
-    'LGBM_model_log': LGBM_model_log,
-    'XGBoost_model_log': xgb_model_log,
-    'RF_model_log': rf_model_log,
-    'DT_model_log': dt_model_log,
-    'LGBM_model': LGBM_model
+#Hiperparametros obtenidos del monolito (también a_04_params_models.py) 
+PARAMS = {
+    'LGBM': {
+        'n_estimators': 300,
+        'learning_rate': 0.1,
+        'num_leaves': 30,
+        'max_depth': 10,
+        'subsample': 0.6,
+        'random_state': 12345
+    },
+    'LGBM_log': {
+        'n_estimators': 100,
+        'learning_rate': 0.1,
+        'num_leaves': 30,
+        'max_depth': 5,
+        'subsample': 0.6,
+        'random_state': 12345
+    },
+    'XGBoost_log': {
+        'random_state':12345,
+        'max_depth': 4, 
+        'n_estimators': 100, 
+        'learning_rate': 0.1, 
+        'subsample': 0.8
+    },
+    'RF_log': {
+        'random_state': 12345, 
+        'max_depth': 6, 
+        'min_samples_leaf': 8, 
+        'min_samples_split': 6, 
+        'n_estimators': 10
+    },
+    'DT_log': {
+        'random_state': 12345, 
+        'max_depth': 6, 
+        'min_samples_split': 8, 
+        'min_samples_leaf': 6
+    }
 }
 
-for name, model in models.items():
-    dump(model, f'outputs/models/{name}.joblib')
-    print(f"Modelo {name} guardado como outputs/models/{name}.joblib")
+def train_model(X_train: pd.DataFrame, y_train: pd.Series, model_type: str) -> Any:
+    
+    models = {
+        'LGBM': LGBMRegressor(**PARAMS['LGBM']),
+        'LGBM_log': LGBMRegressor(**PARAMS['LGBM_log']),
+        'XGBoost_log': XGBRegressor(**PARAMS['XGBoost_log']),
+        'RF_log': RandomForestRegressor(**PARAMS['RF_log']),
+        'DT_log': DecisionTreeRegressor(**PARAMS['DT_log'])
+    }
+    
+    if model_type not in models:
+        raise ValueError(f"No soportado: {model_type}")
+    
+    model = clone(models[model_type])
+    model.fit(X_train, y_train)
+    return model
 
-#Metrics Results
+def evaluate_model(
+    model: Any, 
+    X_test: pd.DataFrame, 
+    y_test: pd.Series, 
+    is_log_target: bool = False
+) -> Tuple[np.ndarray, float]:
+    #Evalúa el modelo y devuelve predicciones + RMSE (en espacio original si es logarítmico)
+    y_pred = model.predict(X_test)
+    
+    if is_log_target:
+        y_pred_original = np.expm1(y_pred)
+        y_test_original = np.expm1(y_test)
+        rmse = mean_squared_error(y_test_original, y_pred_original, squared=False)
+    else:
+        rmse = mean_squared_error(y_test, y_pred, squared=False)
+    
+    return (y_pred, rmse)
 
-data_models = pd.DataFrame({
-    'modelo': [
-        'Árbol de Regresión (log)', 'Bosque Aleatorio (log)', 
-        'XGBoost (log)', 
-        'LightGBM', 'LightGBM (log)'
-    ],
-    'tiempo_entrenamiento_s': [
-        0.723, 4.59, 3.67, 10.6, 5.19
-    ],
-    'tiempo_prediccion_s': [
-        0.0562, 0.0503, 0.198, 1.21, 0.296
-    ],
-    'RMSE': [
-        120.1818, 118.2869, 43.7402, 1569.2482, 21.0746
-    ],
-    'logaritmico': [
-        True, True, True, False, True
-    ]
-})
+def TES(splits: Dict[str, tuple[pd.DataFrame, pd.DataFrame, pd.Series, pd.Series]],
+        models_to_train: Optional[List[str]] = None) -> Dict[str, Dict[str, Any]]:
+    available_models = {
+        'LGBM': {'split_key': 'LGBM', 'is_log': False},
+        'LGBM_log': {'split_key': 'LGBM_log', 'is_log': True},
+        'XGBoost_log': {'split_key': 'XGBoost_log', 'is_log': True},
+        'RF_log': {'split_key': 'RF_log', 'is_log': True},
+        'DT_log': {'split_key': 'DT_log', 'is_log': True}
+    }
+    
+    #por si se específica alguna lista
+    models_to_run = available_models if models_to_train is None else {
+        name: config for name, config in available_models.items()
+        if name in models_to_train
+    }
+
+    results = {}
+    for model_name, config in models_to_run.items():
+        #Carga conjunto
+        X_train, X_test, y_train, y_test = splits[config['split_key']]
+        #entrena
+        model = train_model(X_train, y_train, model_name)
+
+        #evalúa
+        y_pred, rmse = evaluate_model(model, X_test, y_test, config['is_log'])
+
+        # Guardado de modelos seleccionados
+        dump(model, f'outputs/models/{model_name}.joblib')
+        results[model_name] = {'model': model, 'predictions': y_pred, 'rmse': rmse}
+
+    return results

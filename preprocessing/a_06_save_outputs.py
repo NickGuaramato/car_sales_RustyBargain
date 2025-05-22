@@ -1,8 +1,18 @@
 #Guardado de Outputs métricos de modelos
 #a_06_save_outputs.py
-import os
+import pandas as pd
+from typing import Dict, Any
 
-from a_05_models import data_models
+from utils import directs
 
-os.makedirs("outputs/metrics", exist_ok=True)
-data_models.to_csv("outputs/metrics/modelos_seleccionados.csv", index=False)
+def save_metrics(results: Dict[str, Dict[str, Any]]) -> None:
+    #Guarda las métricas de los modelos en un CSV.
+    directs()
+    
+    # Convertir resultados a DataFrame
+    metrics_df = pd.DataFrame({
+        'model': results.keys(),
+        'rmse': [data['rmse'] for data in results.values()]
+    })
+    
+    metrics_df.to_csv("outputs/reports/modelos_seleccionados.csv", index=False)

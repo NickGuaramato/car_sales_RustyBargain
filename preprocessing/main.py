@@ -1,11 +1,16 @@
 #Orquestador
 import os
+from pathlib import Path  # Mejor práctica moderna que os.makedirs
 
-#carpetas para guardado de gráficos, modelos, métricas y reportes de clasificación
-os.makedirs('outputs/models', exist_ok=True)
-os.makedirs('outputs/plots', exist_ok=True)
-os.makedirs('outputs/reports', exist_ok=True)
-os.makedirs('outputs/preprocessed', exist_ok=True)
+from a_00_Preprocessed import preprocess_data
+from a_01_features_eng import features_engineer
+from a_02_encode import encode_data
+from a_03_train_test_split import prepare_all_splits
+from a_05_models import TES
+from a_06_save_outputs import save_metrics
+
+from utils import directs
+from test_pipeline import CSV_PATH
 
 import warnings
 warnings.filterwarnings("ignore")
@@ -23,33 +28,23 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 def main():
+    directs()
     logger.info("Iniciando pipeline de entrenamiento...")
 
     #Preprocesamiento
-    logger.info("Ejecutando preprocesamiento...")
-    from a_00_Preprocessed import df_new_filt
-
-    #Ingeniería de características
-    logger.info("Ejecutando ingeniería de características...")
-    from a_01_features_eng import df_new_filt as df_features
-
-    #Codificación
-    logger.info("Codificando variables...")
-    from a_02_encode import df_new_filt_OHE, log_price
-
-    #División de datos
-    logger.info("Dividiendo conjuntos de entrenamiento y prueba...")
-    import a_03_train_test_split as split
-
-    #Entrenamiento de modelos
-    logger.info("Entrenando modelos...")
-    import a_05_models as models
+    df, _ = preprocess_data(CSV_PATH)
+    df = features_engineer(df)
+    df_encoded = encode_data(df)
     
-    #Guardado de métricas
-    logger.info("Guardando métricas...")
-    import a_06_save_outputs
-
-    logger.info("Pipeline completado con éxito.")
+    # División
+    splits = prepare_all_splits(df, df_encoded)
+    
+    # Entrenamiento
+    results = TES(splits)
+    
+    # Métricas
+    save_metrics(results)
+    logger.info("Pipeline completado")
 
 #Control de ejecución
 if __name__ == "__main__":
