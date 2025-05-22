@@ -87,7 +87,7 @@ print(f'Valores duplicados: {df_new.duplicated().sum()}')
 df_stats = df_new.describe(include='all')
 df_stats.to_csv('outputs/reports/unduplicated_data_statistics.csv', index=True)
 
-
+"""
 #VISUALIZANDO DATOS
 
 #Análisis de distribución de columnas categóricas
@@ -157,7 +157,7 @@ plt.xlabel('Mes')
 plt.ylabel('Frecuencia')
 plt.savefig(f'outputs/plots/non-typical_value_hist.png')
 plt.show()
-
+"""
 
 #Filtrando y acotando datos para columna del año de registro (registration_year)
 df_new_filt = df_new.query('1900 <= registration_year <= 2024')
@@ -368,7 +368,7 @@ estadisticas = pd.DataFrame({
 })
 estadisticas.to_csv('outputs/reports/stats_price(ori)_price(log).csv', index=True)
 
-#Visualización de ambas distribuciones
+"""#Visualización de ambas distribuciones
 plt.figure(figsize=(12, 6))
 
 #Precio original
@@ -445,7 +445,7 @@ sns.heatmap(correlation_matrix, annot=True, cmap='coolwarm', fmt=".2f", linewidt
 
 plt.title("Matriz de Correlación")
 plt.savefig(f'outputs/plots/corr_matrix.png')
-plt.show()
+plt.show()"""
 
 
 """
@@ -490,10 +490,8 @@ df_new_filt.to_csv('outputs/preprocessed/prepro_data_eng_charact.csv', index=Fal
 
 
 
-#ENTRENAMIENTO DE MODELO
-"""
-#Codificación y Escalado
-categorical_cols = ['vehicle_type', 'gearbox', 'fuel_type', 'brand', 'model', 'not_repaired']
+#CODIFICACIÓN Y ESCALADO
+"""categorical_cols = ['vehicle_type', 'gearbox', 'fuel_type', 'brand', 'model', 'not_repaired']
 numerical_cols = ['power', 'mileage', 'vehicle_age']
 
 #Asigno a variable que luego será usada
@@ -529,7 +527,7 @@ df_new_filt_OHE[numerical_cols] = scaler.fit_transform(df_new_filt_OHE[numerical
 
 print('Luego de codificación híbrida y escalado:')
 print(df_new_filt_OHE.head())
-
+log_price = np.log1p(df_new_filt['price'])
 #Crear nueva columna con transformación logarítmica para 'price'
 df_new_filt_OHE['log_price'] = log_price
 
@@ -538,8 +536,7 @@ print(df_new_filt_OHE[['price', 'log_price']].describe())
 """
 
 
-
-
+#ENTRENAMIENTO DE MODELO
 """
 #Características y Objetivo
 #Dividiendo el Dataset y verificando conjunto
@@ -559,9 +556,9 @@ print('Forma del conjunto logarítmico:', X_train_log.shape, X_test_log.shape)
 """
 
 
-"""
+
 #REGRESION LINEAL
-lr_model = LinearRegression()
+"""lr_model = LinearRegression()
 lr_model.fit(X_train, y_train)
 lr_predict = lr_model.predict(X_test)
 lr_rmse = mean_squared_error(y_test, lr_predict)**0.5
@@ -582,7 +579,7 @@ print(f'RMSE de Regresión Lineal es espacio original: {lr_rmse_original}')
 
 
 #ÁRBOL DE REGRESIÓN
-#hiperparámetros de árbol de decisión
+"""#hiperparámetros de árbol de decisión
 dt_params = {
     'max_depth': [1, 2, 3, 4, 5, 6] ,
     'min_samples_split': [2, 4, 6, 8],
@@ -606,8 +603,6 @@ index_max_score = np.where(dt_grid.cv_results_['mean_test_score'] == max_score)[
 best_set_of_params = dt_grid.cv_results_['params'][index_max_score]
 print(f'Hiperparámetros recomendados: {best_set_of_params} | Mejor RSME: {-max_score}')
 
-
-"""
 #Entrenamiento de modelo
 dt_model = DecisionTreeRegressor(random_state=12345, max_depth=6, min_samples_split=2, min_samples_leaf=2)
 dt_model.fit(X_train, y_train)
@@ -618,7 +613,7 @@ print(f'RMSE de Árbol de Regresión: {dt_rmse}')
 
 
 #ÁRBOL DE REGRESIÓN LOGARÍTMICO
-#entrenamos para encontrar mejores hiperparametros empleando el conjunto logarítmico
+"""#entrenamos para encontrar mejores hiperparametros empleando el conjunto logarítmico
 dt_grid.fit(X_train_log, y_train_log)
 #Buscamos mejores hiperparametros que devuelven más bajo RSME
 max_score = dt_grid.cv_results_['mean_test_score'].max()
@@ -628,7 +623,6 @@ best_set_of_params = dt_grid.cv_results_['params'][index_max_score]
 print(f'Hiperparámetros recomendados: {best_set_of_params} | Mejor RSME: {-max_score}')
 
 
-"""
 #Entrenamiento de modelo (logarítmica)
 dt_model_log = DecisionTreeRegressor(random_state=12345, max_depth=6, min_samples_split=8, min_samples_leaf=6)
 dt_model_log.fit(X_train_log, y_train_log)
@@ -643,7 +637,7 @@ print(f'RMSE de Árbol de Regresión en espacio original: {dt_rmse_original}')
 
 
 #BOSQUE ALEATORIO
-rf_params = {
+"""rf_params = {
     'n_estimators' : [10, 20, 40],
     'max_depth': [1, 2, 3, 4, 5, 6],
     'min_samples_split': [2, 4, 6, 8],
@@ -683,7 +677,7 @@ best_set_of_params = rf_grid.cv_results_["params"][index_max_score]
 
 print(f'Hiperparámetros recomendados: {best_set_of_params} | Mejor RSME: {-max_score}')
 
-"""#Entrenamiento de modelo logarítmico
+#Entrenamiento de modelo logarítmico
 rf_model_log = RandomForestRegressor(random_state=12345, max_depth=6, min_samples_leaf=8, min_samples_split=6, n_estimators=10)
 rf_model_log.fit(X_train_log, y_train_log)
 rf_predict_log = rf_model_log.predict(X_test_log)
@@ -697,14 +691,12 @@ print(f'RMSE de Bosque Aleatorio en espacio original: {rf_rmse_original}')
 
 
 
-"""
 #CATBOOST
-#Características y objetivos antes de OHE
+"""#Características y objetivos antes de OHE
 features = df_new_filt.drop('price', axis=1)
 target = df_new_filt['price']
 
 features_train, features_test, target_train, target_test = train_test_split(features, target, test_size=0.25, random_state=12345)
-"""
 
 
 #Selecciono sólo las columnas cuyas características son categóricas
@@ -741,21 +733,20 @@ best_params = cb_grid.cv_results_["params"][index_max_score]
 
 print(f'Hiperparámetros recomendados: {best_params} | Mejor RSME: {-max_score}')
 
-
-"""cb_model = CatBoostRegressor(random_state=12345, iterations=100, depth=10, learning_rate=0.2, random_strength=1, loss_function='RMSE', cat_features=categorical_columns, verbose=False)
+cb_model = CatBoostRegressor(random_state=12345, iterations=100, depth=10, learning_rate=0.2, random_strength=1, loss_function='RMSE', cat_features=categorical_columns, verbose=False)
 cb_model.fit(features_train, target_train)
 cb_predict = cb_model.predict(features_test)
 cb_rmse = mean_squared_error(target_test, cb_predict)**0.5
 print(f'RMSE de CatBoost: {cb_rmse}')"""
 
 
-"""#CATBOOST LOGARÍTMICO
-#Agrego la transformación logarítmica de la variable objetivo
+#CATBOOST LOGARÍTMICO
+"""#Agrego la transformación logarítmica de la variable objetivo
 df_new_filt['log_price'] = log_price
 #variable objetivo logarítmica
 target_log = df_new_filt['log_price']
 
-features_train_log, features_test_log, target_train_log, target_test_log = train_test_split(features, target_log, test_size=0.25, random_state=12345)"""
+features_train_log, features_test_log, target_train_log, target_test_log = train_test_split(features, target_log, test_size=0.25, random_state=12345)
 
 
 cb_grid.fit(features_train_log, target_train_log)
@@ -769,7 +760,7 @@ print(f'Hiperparámetros recomendados: {best_params} | Mejor RSME: {-max_score}'
 
 
 #Entrenamiento log
-"""cb_model_log = CatBoostRegressor(random_state=12345, iterations=100, depth=6, learning_rate=0.1, random_strength=1, loss_function='RMSE', cat_features=categorical_columns, verbose=False)
+cb_model_log = CatBoostRegressor(random_state=12345, iterations=100, depth=6, learning_rate=0.1, random_strength=1, loss_function='RMSE', cat_features=categorical_columns, verbose=False)
 cb_model_log.fit(features_train_log, target_train_log)
 cb_predict_log = cb_model_log.predict(features_test_log)
 
@@ -782,7 +773,7 @@ print(f'RMSE de CatBoost en espacio original: {cb_rmse_original}')"""
 
 
 #XGBOOOST
-#Hiperparametros
+"""#Hiperparametros
 xgb_params = {'max_depth': [4, 6, 8], 
             'n_estimators': [50, 100],
             'learning_rate': [0.05, 0.1],
@@ -804,7 +795,7 @@ print(f'Hiperparámetros recomendados: {best_params} | Mejor RSME: {-max_score}'
 
 
 
-"""#Entrenamos modelo con hiperparametros
+#Entrenamos modelo con hiperparametros
 xgb_model = XGBRegressor(random_state=12345, max_depth=8, n_estimators=100, learning_rate=0.1, subsample=0.8)
 xgb_model.fit(X_train, y_train)
 xgb_predict = xgb_model.predict(X_test)
@@ -814,7 +805,7 @@ print(f'RMSE de XGBoost: {xgb_rmse}')
 
 
 #XGBOOST LOGARÍTMICO
-#Buscamos los mejores hiperparametros en el espacio logarítmico
+"""#Buscamos los mejores hiperparametros en el espacio logarítmico
 xgb_grid.fit(X_train_log, y_train_log)
 max_score = xgb_grid.cv_results_["mean_test_score"].max()
 index_max_score = np.where(xgb_grid.cv_results_["mean_test_score"] == max_score)[0][0]
@@ -824,7 +815,7 @@ best_params = xgb_grid.cv_results_["params"][index_max_score]
 print(f'Hiperparámetros recomendados: {best_params} | Mejor RSME: {-max_score}')
 
 
-"""#Entrenamos modelo con hiperparametros en espacio logarítmico
+#Entrenamos modelo con hiperparametros en espacio logarítmico
 xgb_model_log = XGBRegressor(random_state=12345, max_depth=4, n_estimators=100, learning_rate=0.1, subsample=0.8)
 xgb_model_log.fit(X_train_log, y_train_log)
 xgb_predict_log = xgb_model_log.predict(X_test_log)
@@ -837,9 +828,9 @@ print(f'RMSE de XGBoost en espacio original: {xgb_rmse_original}')
 """
 
 
-"""
+
 #LIGHTGBM
-#Igual que catboost, tomo el conjunto para antes de OHE
+"""#Igual que catboost, tomo el conjunto para antes de OHE
 for col in categorical_columns:
     df_new_filt[col] = df_new_filt[col].astype('category')
 
@@ -847,7 +838,7 @@ X_LGBM = df_new_filt.drop('price', axis=1)
 y_LGBM = df_new_filt['price']
 
 X_LGBM_train, X_LGBM_test, y_LGBM_train, y_LGBM_test = train_test_split(X_LGBM, y_LGBM, test_size=0.25, random_state=12345)
-"""
+
 
 
 
@@ -878,7 +869,7 @@ best_params = LGBM_grid.cv_results_["params"][index_max_score]
 
 print(f'Hiperparámetros recomendados: {best_params} | Mejor RECM: {-max_score}')
 
-"""LGBM_model = LGBMRegressor(n_estimators=300, learning_rate=0.1, num_leaves=30, max_depth=10, subsample=0.6, random_state=12345)
+LGBM_model = LGBMRegressor(n_estimators=300, learning_rate=0.1, num_leaves=30, max_depth=10, subsample=0.6, random_state=12345)
 LGBM_model.fit(X_LGBM_train, y_LGBM_train)
 LGBM_predict = LGBM_model.predict(X_LGBM_test)
 LGBM_rmse = mean_squared_error(y_LGBM_test, LGBM_predict)**0.5
@@ -889,7 +880,7 @@ print(f'RMSE de LightGBM: {LGBM_rmse}')"""
 y_LGBM_log = df_new_filt['log_price']
 
 X_LGBM_train_log, X_LGBM_test_log, y_LGBM_train_log, y_LGBM_test_log = train_test_split(X_LGBM, y_LGBM_log, test_size=0.25, random_state=12345)
-"""
+
 
 
 
@@ -903,7 +894,7 @@ best_params = LGBM_grid.cv_results_["params"][index_max_score]
 print(f'Hiperparámetros recomendados: {best_params} | Mejor RSME: {-max_score}')
 
 
-"""LGBM_model_log = LGBMRegressor(n_estimators=100, learning_rate=0.1, num_leaves=30, max_depth=5, subsample=0.6, random_state=12345)
+LGBM_model_log = LGBMRegressor(n_estimators=100, learning_rate=0.1, num_leaves=30, max_depth=5, subsample=0.6, random_state=12345)
 LGBM_model_log.fit(X_LGBM_train_log, y_LGBM_train_log)
 LGBM_predict_log = LGBM_model_log.predict(X_LGBM_test_log)
 
@@ -979,6 +970,27 @@ print(models_table)
 #Guardo la tabla
 models_table.to_csv('outputs/reports/models_table_result.csv', index=True)
 
+"""
+#modelo seleccionados (a_05_models.pyd)
+data_models = pd.DataFrame({
+    'modelo': [
+        'Árbol de Regresión (log)', 'Bosque Aleatorio (log)', 
+        'XGBoost (log)', 
+        'LightGBM', 'LightGBM (log)'
+    ],
+    'tiempo_entrenamiento_s': [
+        0.723, 4.59, 3.67, 10.6, 5.19
+    ],
+    'tiempo_prediccion_s': [
+        0.0562, 0.0503, 0.198, 1.21, 0.296
+    ],
+    'RMSE': [
+        120.1818, 118.2869, 43.7402, 1569.2482, 21.0746
+    ],
+    'logaritmico': [
+        True, True, True, False, True
+    ]
+})"""
 
 #GRAFICA
 fig, axs = plt.subplots(nrows=2, ncols=2, figsize=(20, 12))
