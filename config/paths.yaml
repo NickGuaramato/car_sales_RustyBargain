@@ -1,0 +1,13 @@
+dirs:
+  raw: "data/raw/"
+  processed: "data/processed/"
+  artifacts: "artifacts/"
+  metrics: "artifacts/reports/"
+  plots: "artifacts/plots/"
+  logs: "artifacts/logs/"
+  selected_models: "artifacts/models/"
+
+files:
+  raw_data: "data/raw/car_data.csv"
+  processed_data: "data/processed/data_processed.parquet"
+  final_data: "data/processed/final_data.parquet"

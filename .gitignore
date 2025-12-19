@@ -1,3 +1,77 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual environments
+.env
+.venv
+venv/
+ENV/
+env.bak/
+venv.bak/
+pythonenv*
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# Datos generados
+data/processed/
+data/processed/*
+
+# Artefactos (excepto reports/)
+artifacts/encoders/
+artifacts/models/
+artifacts/plots/
+artifacts/logs/
+artifacts/plots/comparison_mosaics/
+
+# Reports SÍ se versionan (se excluyen individualmente si son grandes)
+
+# Debug
+debug/
+
+# Modelos y archivos grandes
+*.joblib
+*.pkl
+*.h5
+*.hdf5
+
+# Logs
+*.log
+pipeline.log
+
+# CatBoost
 catboost_info
 
+# Legacy
+.legacy/
 rusty_bargain_project.py
+
+# Tests cache
+.pytest_cache/
+.coverage
+htmlcov/

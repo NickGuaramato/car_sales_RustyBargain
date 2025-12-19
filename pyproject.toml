@@ -1,0 +1,35 @@
+[build-system]
+requires = ["setuptools>=42"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "car_sales_RustyBargain"
+version = "1.0.0"
+authors = [{ name = "Nick", email = "guaramatonick@gmail.com" }]
+description = "ML pipeline for used car price prediction"
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }  # ¡Añade licencia!
+
+dependencies = [
+    # Core
+    "pandas>=2.2.2,<3.0.0",
+    "scikit-learn>=1.5.1,<2.0.0",
+    "lightgbm>=4.6.0",
+    "catboost>=1.2.5",
+    "matplotlib>=3.9.2",
+    "seaborn>=0.13.2",
+    "xgboost>=2.1.1"
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=7.2.1", "debugpy>=1.8.5"]
+notebook = ["jupyterlab>=4.2.4", "plotly>=5.24.0"]
+
+[project.scripts]
+train-model = "src.models.train:main"  #Asegúra que la ruta sea correcta
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
+testpaths = ["tests"]
+addopts = "--import-mode=importlib"
