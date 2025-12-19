@@ -75,3 +75,4 @@ rusty_bargain_project.py
 .pytest_cache/
 .coverage
 htmlcov/
+*.bak

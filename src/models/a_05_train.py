@@ -4,6 +4,7 @@ import pandas as pd
 import numpy as np
 
 from src.utils.config_manager import load_paths
+from src.utils.logging_config import setup_logging
 
 from typing import Any, Dict, List, Optional, Tuple
 
@@ -21,6 +22,7 @@ from joblib import dump
 from pathlib import Path
 
 PATHS = load_paths()["dirs"]
+logger = setup_logging(module='training')
 
 #MEJORES Hiperparametros obtenidos del monolito (también se puede ubicar en módulo a_04_tune_hyperparams.py) 
 PARAMS = {
@@ -99,6 +101,7 @@ def evaluate_model(
 
 def TES(splits: Dict[str, tuple[pd.DataFrame, pd.DataFrame, pd.Series, pd.Series]],
         models_to_train: Optional[List[str]] = None) -> Dict[str, Dict[str, Any]]:
+    logger.info(f"🚀 Iniciando entrenamiento de modelos")
     available_models = {
         'LGBM': {'split_key': 'LGBM', 'is_log': False},
         'LGBM_log': {'split_key': 'LGBM_log', 'is_log': True},
@@ -115,16 +118,22 @@ def TES(splits: Dict[str, tuple[pd.DataFrame, pd.DataFrame, pd.Series, pd.Series
 
     results = {}
     for model_name, config in models_to_run.items():
+        logger.info(f"🔧 Entrenando modelo: {model_name}")
         #Carga conjunto
         X_train, X_test, y_train, y_test = splits[config['split_key']]
         #entrena
         model = train_model(X_train, y_train, model_name)
+        logger.debug(f"✅ {model_name} entrenado")
 
         #evalúa
         y_pred, rmse = evaluate_model(model, X_test, y_test, config['is_log'])
+        logger.info(f"📊 {model_name} - RMSE: {rmse:.4f}")
 
         # Guardado de modelos seleccionados
         dump(model, Path(PATHS["selected_models"]) /  f"{model_name}.joblib")
+        logger.debug(f"💾 Modelo {model_name} guardado")
+
         results[model_name] = {'model': model, 'predictions': y_pred, 'rmse': rmse}
 
+    logger.info(f"🎉 Entrenamiento completado. Mejor modelo: {min(results.items(), key=lambda x: x[1]['rmse'])[0]}")
     return results

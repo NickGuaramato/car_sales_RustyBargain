@@ -7,6 +7,9 @@ from typing import Optional
 
 from src.utils.helpers import directs
 from src.utils.config_manager import load_paths
+from src.utils.logging_config import setup_logging
+
+logger = setup_logging(module='feature_engineering')
 
 #INGENIERÍA DE CARACTERÍSTICAS
 def vehicle_age(df: pd.DataFrame, current_year: int = 2024, fixed_outlier: Optional[int] = 114) -> pd.DataFrame:
@@ -35,16 +38,27 @@ def features_engineer(df: pd.DataFrame) -> pd.DataFrame:
     directs()
     PATHS = load_paths()
 
+    logger.info(f"🚀 Iniciando ingeniería de características. Shape inicial: {df.shape}")
+
     df = vehicle_age(df)
+    logger.debug(f"✅ vehicle_age calculado")
+
     df= mileage_per_year(df)
+    logger.debug(f"✅ mileage_per_year calculado")
+
     #último ajuste
     df = df.drop('registration_month', axis=1, errors='ignore')
+    logger.debug(f"🔄 registration_month eliminado")
+
     #estadistica de dataset final
     df.describe(include='all').to_csv(Path(PATHS["dirs"]["metrics"]) / "final_stats_data.csv", 
                                       index=True
                                       )
+    
+    logger.debug(f"📊 Estadísticas guardadas")
 
     #guardado con nuevas caracteristicas (datos procesados)
     df.to_parquet(PATHS["files"]["processed_data"])
+    logger.info(f"💾 Dataset con features guardado. Shape final: {df.shape}, Columnas: {list(df.columns)}")
 
     return df

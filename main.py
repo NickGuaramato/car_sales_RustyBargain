@@ -1,9 +1,7 @@
-#Orquestador
 #main.py
-import logging
-from pathlib import Path
 import warnings
 import time
+from pathlib import Path
 
 from src.preprocessing.a_00_data_cleaning import preprocess_data
 from src.preprocessing.a_01_feature_engineering import features_engineer
@@ -14,29 +12,13 @@ from src.preprocessing.a_06_save_results import save_metrics
 
 from src.utils.config_manager import load_paths
 from src.utils.helpers import directs
-
+from src.utils.logging_config import setup_logging
 warnings.filterwarnings("ignore")
 PATHS_CONFIG = load_paths()
 PATHS_DIRS = PATHS_CONFIG["dirs"]
 PATHS_FILES = PATHS_CONFIG["files"]
 
-#print por logs automáticos ajustar: nivel de detalle, guardarlos y desactivar mensajes en producción
-
-def setup_logger():
-    log_dir = Path(PATHS_DIRS["logs"])
-    log_dir.mkdir(parents=True, exist_ok=True)
-    
-    logging.basicConfig(
-        level=logging.INFO,
-        format='%(asctime)s [%(levelname)s] %(module)s.%(funcName)s: %(message)s',
-        handlers=[
-            logging.FileHandler(log_dir / "pipeline.log"),
-            logging.StreamHandler()
-        ]
-    )
-    return logging.getLogger(__name__)
-
-logger = setup_logger()
+logger = setup_logging(module='main')
 
 def main():
     try:

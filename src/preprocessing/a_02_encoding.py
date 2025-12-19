@@ -5,13 +5,18 @@ from sklearn.preprocessing import StandardScaler, OneHotEncoder
 
 from src.utils.config_manager import load_paths
 from src.utils.helpers import directs
+from src.utils.logging_config import setup_logging
 
 from pathlib import Path
+
+logger = setup_logging(module='encoding')
 
 def encode_data(df: pd.DataFrame, save_encoders: bool = True) -> pd.DataFrame:
     directs()
     PATHS = load_paths()
     df = df.copy()
+
+    logger.info(f"🚀 Iniciando encoding. Shape: {df.shape}, Columnas: {list(df.columns)}")
     
     if save_encoders:
         brand_freq_to_save = {}
@@ -25,19 +30,22 @@ def encode_data(df: pd.DataFrame, save_encoders: bool = True) -> pd.DataFrame:
     # 1. Convertir 'not_repaired' a binario (1/0) ANTES de cualquier encoding
     if 'not_repaired' in df.columns:
         df['not_repaired'] = df['not_repaired'].map({'yes': 1, 'no': 0}).fillna(0).astype(int)
-    
-    # 2. Frequency encoding para 'brand' y 'model' (como ya lo haces)
+    logger.debug("✅ not_repaired convertido a binario")
+
+    # 2. Frequency encoding para 'brand' y 'model
     for col in ['brand', 'model']:
         if col in df.columns:
             freq = df[col].value_counts(normalize=True)
             df[col + '_freq'] = df[col].map(freq)  # Nueva columna
             df.drop(col, axis=1, inplace=True)  # Elimina la original
+    logger.debug("✅ Frequency encoding aplicado a brand/model")
     
-    # 3. One-Hot Encoding para categóricas (¡asegúrate de que existen!)
+    # 3. One-Hot Encoding para categóricas
     categorical_cols = ['vehicle_type', 'gearbox', 'fuel_type']
     existing_cats = [col for col in categorical_cols if col in df.columns]
     
     if existing_cats:
+        logger.debug(f"✅ One-Hot Encoding aplicado a: {existing_cats}")
         encoder = OneHotEncoder(sparse_output=False, drop='first')
         ohe_data = encoder.fit_transform(df[existing_cats])
         ohe_cols = encoder.get_feature_names_out(existing_cats)
@@ -47,11 +55,13 @@ def encode_data(df: pd.DataFrame, save_encoders: bool = True) -> pd.DataFrame:
     # 4. Escalado numérico (verifica columnas)
     numerical_cols = [col for col in ['power', 'mileage', 'vehicle_age'] if col in df.columns]
     if numerical_cols:
+        logger.debug(f"✅ Escalado aplicado a: {numerical_cols}")
         scaler = StandardScaler()
         df[numerical_cols] = scaler.fit_transform(df[numerical_cols])
     
     # 5. Transformación logarítmica (opcional)
     if 'price' in df.columns:
+        logger.debug("✅ Transformación logarítmica aplicada a price")
         df['log_price'] = np.log1p(df['price'])
     
     # Verificación final: ¿Todas las columnas son numéricas?
@@ -60,11 +70,13 @@ def encode_data(df: pd.DataFrame, save_encoders: bool = True) -> pd.DataFrame:
         raise ValueError(f"Columnas no numéricas después de encoding: {non_numeric}")
     
     #guardado con encodificado (data final)
+    logger.info(f"💾 Dataset codificado guardado. Shape final: {df.shape}, Columnas numéricas: {len(df.select_dtypes(include=['number']).columns)}")
     df.to_parquet(PATHS["files"]["final_data"])
     
 
  # GUARDAR ENCODERS SI SE SOLICITA (solo durante entrenamiento)
     if save_encoders:
+        logger.info("💾 Encoders guardados en artifacts/encoders/")
         from pathlib import Path
         import joblib
         

@@ -9,8 +9,10 @@ from typing import Tuple
 
 from src.utils.helpers import fill_missing_values, normalize_names, directs
 from src.utils.config_manager import load_paths
+from src.utils.logging_config import setup_logging
 
 PATHS = load_paths()["dirs"]
+logger = setup_logging(module='data_cleaning')
 
 def load_data(path: str) -> pd.DataFrame:
     df = pd.read_csv(path)
@@ -153,8 +155,14 @@ def analyze_data(df: pd.DataFrame) -> dict:
 
 def preprocess_data(input_path: str) -> pd.DataFrame:
     directs()
+
+    logger.info(f"🚀 Iniciando preprocesamiento desde: {input_path}")
+
     #estadisticas de dataset original
     df_raw = pd.read_csv(input_path)
+    
+    logger.info(f"📊 Dataset original cargado. Shape: {df_raw.shape}")
+
     df_raw.describe(include='all').to_csv(Path(PATHS["metrics"]) / "original_data_statistics.csv", 
                                           index=True
                                           )
@@ -162,7 +170,12 @@ def preprocess_data(input_path: str) -> pd.DataFrame:
     df = load_data(input_path)
     df = convert_data_types(df)
     df = unnecessary_columns(df)
+
+    logger.debug(f"🔄 Después de limpieza básica. Columnas: {len(df.columns)}")
+
     df= remove_duplicates(df)
+
+    logger.info(f"🧹 Duplicados eliminados. Filas: {df.shape[0]}")
     
     df.to_pickle(Path(PATHS["metrics"]) / "unduplicated_data.pkl")
     df.describe(include='all').to_csv(Path(PATHS["metrics"]) / "unduplicated_data_stats.csv", 
@@ -170,15 +183,26 @@ def preprocess_data(input_path: str) -> pd.DataFrame:
                                       )
 
     df = filter_data(df)
+
+    logger.info(f"🎯 Después de filtros. Filas: {df.shape[0]}")
+
     df = process_missing_values(df)
 
+    logger.info(f"🔧 Valores faltantes procesados. ¿Nulos?: {df.isnull().sum().sum() == 0}")
+
     assert df.isnull().sum().sum() == 0, "¡Quedan valores nulos!"
+
+    logger.info("✅ Validación pasada: Cero valores nulos")
 
     df.to_pickle(Path(PATHS["metrics"]) / "preprocessed_data.pkl")
     df.describe(include='all').to_csv(Path(PATHS["metrics"]) / "preprocessed_stats.csv", 
                                       index=True
                                       )#datos preprocesados (antes de features_engineer)
 
+    logger.debug("💾 Datos preprocesados guardados")
+
     stats = analyze_data(df)
+
+    logger.info("🎉 Preprocesamiento completado exitosamente")
 
     return df, stats
