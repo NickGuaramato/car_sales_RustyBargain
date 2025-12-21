@@ -218,17 +218,21 @@ Se deben proporcionar las 9 características para las predicciones:
 - not_repaired (string: "yes" o "no")
 
 ### 📁 Estructura de Salida Esperada
-artifacts/
-├── models/ # Modelos serializados (.joblib)
-│ ├── LGBM.joblib # Modelo con mejor rendimiento
-│ ├── LGBM_log.joblib
-│ ├── XGBoost_log.joblib
-│ └── ...
-├── reports/ # Métricas de evaluación
-│ ├── selected_models.json # Puntuaciones RMSE
-│ ├── selected_models.csv
-│ └── preprocessed_data_statistics.csv
-└── logs/pipeline.log # Log de ejecución con timestamps
+**artifacts/**
+- `models/` - Modelos serializados (.joblib)
+  - `LGBM.joblib` - Modelo con mejor rendimiento
+  - `LGBM_log.joblib`
+  - `XGBoost_log.joblib`
+  - ...
+- `reports/` - Métricas de evaluación
+  - `selected_models.json` - Puntuaciones RMSE
+  - `selected_models.csv`
+  - `preprocessed_data_statistics.csv`
+- `logs/pipeline.log` - Log de ejecución con timestamps
+
+**data/processed/** - Datasets intermedios
+- `data_processed.parquet` - Limpio + características (12 cols)
+- `final_data.parquet` - Codificado listo para modelos (23 cols)
 
 data/processed/ # Datasets intermedios
 ├── data_processed.parquet # Limpio + características (12 cols)
