@@ -38,76 +38,68 @@
 ## 🏗️ Arquitectura & Diseño
 
 ### 📁 Estructura del Proyecto
-car_sales_RustyBargain/
-├── 📦 src/ # Código fuente (paquete Python instalable)
-│ ├── preprocessing/ # Pipeline de procesamiento de datos
-│ │ ├── a_00_data_cleaning.py
-│ │ ├── a_01_feature_engineering.py
-│ │ ├── a_02_encoding.py
-│ │ ├── a_03_split_data.py
-│ │ └── a_06_save_results.py
-│ ├── models/ # Entrenamiento y predicción de modelos
-│ ├── utils/ # Configuración, logging, helpers
-│ └── visualization/ # EDA y gráficos
-├── ⚙️ config/ # Archivos de configuración YAML
-│ ├── paths.yaml # Rutas de directorios
-│ └── params.yaml # Hiperparámetros del modelo
-├── 🧪 tests/ # Suite de pruebas exhaustiva
-│ ├── unit/ # Pruebas unitarias para módulos
-│ └── integration/ # Pruebas de pipeline end-to-end
-├── 📊 artifacts/ # Salidas generadas (no versionadas)
-│ ├── models/ # Modelos serializados (.joblib)
-│ ├── reports/ # Métricas y estadísticas (.csv, .json)
-│ ├── plots/ # Salidas de visualización
-│ └── logs/ # Logs de ejecución del pipeline
-├── 📓 notebooks/ # Análisis exploratorio de datos
-├── 🐳 Dockerfile # Contenedorización
-├── 📄 pyproject.toml # Empaquetado Python moderno
-└── 🌿 environment.yml # Especificación de entorno Conda
+**car_sales_RustyBargain/**
+- `src/` - Código fuente (paquete Python instalable)
+  - `preprocessing/` - Pipeline de procesamiento de datos
+    - `a_00_data_cleaning.py`
+    - `a_01_feature_engineering.py`
+    - `a_02_encoding.py`
+    - `a_03_split_data.py`
+    - `a_06_save_results.py`
+  - `models/` - Entrenamiento y predicción de modelos
+  - `utils/` - Configuración, logging, helpers
+  - `visualization/` - EDA y gráficos
+- `config/` - Archivos de configuración YAML
+  - `paths.yaml` - Rutas de directorios
+  - `params.yaml` - Hiperparámetros del modelo
+- `tests/` - Suite de pruebas exhaustiva
+  - `unit/` - Pruebas unitarias para módulos
+  - `integration/` - Pruebas de pipeline end-to-end
+- `artifacts/` - Salidas generadas (no versionadas)
+  - `models/` - Modelos serializados (.joblib)
+  - `reports/` - Métricas y estadísticas (.csv, .json)
+  - `plots/` - Salidas de visualización
+  - `logs/` - Logs de ejecución del pipeline
+- `notebooks/` - Análisis exploratorio de datos
+- `Dockerfile` - Contenedorización
+- `pyproject.toml` - Empaquetado Python moderno
+- `environment.yml` - Especificación de entorno Conda
 
 ### 🔄 Flujo del Pipeline & Persistencia de Datos
-📁 data/raw/car_data.csv (354,369 filas)
-│
-▼ (a_00_data_cleaning.py)
-🧹 Limpieza y Filtrado de Datos
-├── 🗑️ Remover duplicados → 326,826 filas
-├── 🎯 Aplicar filtros (año, precio, potencia) → 314,814 filas
-├── 🔧 Manejar valores faltantes → 258,199 filas (limpias)
-├── Conversión de tipos
-│
-├── 💾 GUARDAR: artifacts/reports/unduplicated_data.pkl (326,826 filas)
-└── 💾 GUARDAR: artifacts/reports/preprocessed_data.pkl (258,199 filas)
-│
-▼ (a_01_feature_engineering.py)
-⚙️ Ingeniería de Características
-├── ➕ Agregar: vehicle_age (2024 - registration_year)
-├── ➕ Agregar: mileage_per_year (mileage / vehicle_age)
-├── ➖ Eliminar: registration_month
-│
-└── 💾 GUARDAR: data/processed/data_processed.parquet (258,199 filas, 12 cols)
-│
-▼ (a_02_encoding.py)
-🔢 Codificación & Transformación
-├── 🔄 Codificación por frecuencia: brand → brand_freq, model → model_freq
-├── 🎭 Codificación One-Hot: vehicle_type, gearbox, fuel_type
-├── 📏 Estandarización: power, mileage, vehicle_age
-├── 📈 Transformación logarítmica: price → log_price (opcional)
-│
-└── 💾 GUARDAR: data/processed/final_data.parquet (258,199 filas, 23 cols)
-│
-▼ (a_05_train.py)
-🤖 Entrenamiento & Predicción de Modelos (Entrena 5 modelos con hiperparámetros optimizados)
-├── 📊 Para modelos basados en árboles (LGBM): Usar data_processed.parquet (características categóricas)
-├── ⚙️ Para otros modelos (XGBoost, RF, DT): Usar final_data.parquet (características codificadas)
-├── Evaluar usando RMSE
-├── 💾 Guardar modelos: artifacts/models/*.joblib
-└── 💾 Guardar métricas: artifacts/reports/selected_models.json
-│
-▼ (main.py & predict.py)
-🚀 Listo para Despliegue
-├── Modelos serializados (.joblib)
-├── Codificadores entrenados
-└── API de predicción (predict.py)
+**📁 data/raw/car_data.csv** (354,369 filas)
+
+**▼ (a_00_data_cleaning.py) - Limpieza y Filtrado de Datos**
+- 🗑️ Remover duplicados → 326,826 filas
+- 🎯 Aplicar filtros (año, precio, potencia) → 314,814 filas
+- 🔧 Manejar valores faltantes → 258,199 filas (limpias)
+- Conversión de tipos
+- 💾 **GUARDAR:** `artifacts/reports/unduplicated_data.pkl` (326,826 filas)
+- 💾 **GUARDAR:** `artifacts/reports/preprocessed_data.pkl` (258,199 filas)
+
+**▼ (a_01_feature_engineering.py) - Ingeniería de Características**
+- ➕ Agregar: `vehicle_age` (2024 - registration_year)
+- ➕ Agregar: `mileage_per_year` (mileage / vehicle_age)
+- ➖ Eliminar: registration_month
+- 💾 **GUARDAR:** `data/processed/data_processed.parquet` (258,199 filas, 12 cols)
+
+**▼ (a_02_encoding.py) - Codificación & Transformación**
+- 🔄 Codificación por frecuencia: `brand → brand_freq`, `model → model_freq`
+- 🎭 Codificación One-Hot: `vehicle_type`, `gearbox`, `fuel_type`
+- 📏 Estandarización: `power`, `mileage`, `vehicle_age`
+- 📈 Transformación logarítmica: `price → log_price` (opcional)
+- 💾 **GUARDAR:** `data/processed/final_data.parquet` (258,199 filas, 23 cols)
+
+**▼ (a_05_train.py) - Entrenamiento & Predicción de Modelos**
+- 📊 Para modelos basados en árboles (LGBM): Usar `data_processed.parquet`
+- ⚙️ Para otros modelos (XGBoost, RF, DT): Usar `final_data.parquet`
+- **Evaluar usando RMSE**
+- 💾 Guardar modelos: `artifacts/models/*.joblib`
+- 💾 Guardar métricas: `artifacts/reports/selected_models.json`
+
+**▼ (main.py & predict.py) - Listo para Despliegue**
+- Modelos serializados (.joblib)
+- Codificadores entrenados
+- API de predicción (`predict.py`)
 
 **Explicación Clave**:
 - **unduplicated_data.pkl**: Dataset después de eliminar duplicados, ANTES de filtros estrictos
