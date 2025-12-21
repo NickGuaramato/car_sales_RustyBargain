@@ -9,7 +9,7 @@ authors = [{ name = "Nick", email = "guaramatonick@gmail.com" }]
 description = "ML pipeline for used car price prediction"
 readme = "README.md"
 requires-python = ">=3.10"
-license = { text = "No_license" }
+license = { text = "MIT" }
 
 dependencies = [
     # Core

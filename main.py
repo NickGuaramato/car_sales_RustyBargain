@@ -36,7 +36,7 @@ def main():
         logger.info("Fase 2/4: Procesamiento (con features_eng)")
         df = features_engineer(df)
 
-        #EEncodificado
+        #Encodificado
         print("Columnas después de feature_engineering:", df.columns.tolist())
 
         logger.info("Fase 3/4: Encodificando...")
