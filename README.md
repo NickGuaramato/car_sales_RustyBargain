@@ -66,17 +66,17 @@ car_sales_RustyBargain/
 └── 🌿 environment.yml # Especificación de entorno Conda
 
 ### 🔄 Flujo del Pipeline & Persistencia de Datos
-📁 data/raw/car_data.csv (354.369 filas)
+📁 data/raw/car_data.csv (354,369 filas)
 │
 ▼ (a_00_data_cleaning.py)
 🧹 Limpieza y Filtrado de Datos
-├── 🗑️ Remover duplicados → 326.826 filas
-├── 🎯 Aplicar filtros (año, precio, potencia) → 314.814 filas
-├── 🔧 Manejar valores faltantes → 258.199 filas (limpias)
+├── 🗑️ Remover duplicados → 326,826 filas
+├── 🎯 Aplicar filtros (año, precio, potencia) → 314,814 filas
+├── 🔧 Manejar valores faltantes → 258,199 filas (limpias)
 ├── Conversión de tipos
 │
-├── 💾 GUARDAR: artifacts/reports/unduplicated_data.pkl (326.826 filas)
-└── 💾 GUARDAR: artifacts/reports/preprocessed_data.pkl (258.199 filas)
+├── 💾 GUARDAR: artifacts/reports/unduplicated_data.pkl (326,826 filas)
+└── 💾 GUARDAR: artifacts/reports/preprocessed_data.pkl (258,199 filas)
 │
 ▼ (a_01_feature_engineering.py)
 ⚙️ Ingeniería de Características
@@ -84,7 +84,7 @@ car_sales_RustyBargain/
 ├── ➕ Agregar: mileage_per_year (mileage / vehicle_age)
 ├── ➖ Eliminar: registration_month
 │
-└── 💾 GUARDAR: data/processed/data_processed.parquet (258.199 filas, 12 cols)
+└── 💾 GUARDAR: data/processed/data_processed.parquet (258,199 filas, 12 cols)
 │
 ▼ (a_02_encoding.py)
 🔢 Codificación & Transformación
@@ -93,7 +93,7 @@ car_sales_RustyBargain/
 ├── 📏 Estandarización: power, mileage, vehicle_age
 ├── 📈 Transformación logarítmica: price → log_price (opcional)
 │
-└── 💾 GUARDAR: data/processed/final_data.parquet (258.199 filas, 23 cols)
+└── 💾 GUARDAR: data/processed/final_data.parquet (258,199 filas, 23 cols)
 │
 ▼ (a_05_train.py)
 🤖 Entrenamiento & Predicción de Modelos (Entrena 5 modelos con hiperparámetros optimizados)
@@ -218,22 +218,21 @@ Se deben proporcionar las 9 características para las predicciones:
 - not_repaired (string: "yes" o "no")
 
 ### 📁 Estructura de Salida Esperada
-Después de correr el pipeline se encontrará:
 artifacts/
-├── models/                    # Modelos serializados (.joblib)
-│   ├── LGBM.joblib           # Modelo con mejor rendimiento
-│   ├── LGBM_log.joblib
-│   ├── XGBoost_log.joblib
-│   └── ...
-├── reports/                   # Métricas de evaluación
-│   ├── selected_models.json  # Puntuaciones RMSE
-│   ├── selected_models.csv
-│   └── preprocessed_data_statistics.csv
-└── logs/pipeline.log         # Log de ejecución con timestamps
+├── models/ # Modelos serializados (.joblib)
+│ ├── LGBM.joblib # Modelo con mejor rendimiento
+│ ├── LGBM_log.joblib
+│ ├── XGBoost_log.joblib
+│ └── ...
+├── reports/ # Métricas de evaluación
+│ ├── selected_models.json # Puntuaciones RMSE
+│ ├── selected_models.csv
+│ └── preprocessed_data_statistics.csv
+└── logs/pipeline.log # Log de ejecución con timestamps
 
-data/processed/               # Datasets intermedios
-├── data_processed.parquet    # Limpio + características (12 cols)
-└── final_data.parquet        # Codificado listo para modelos (23 cols)
+data/processed/ # Datasets intermedios
+├── data_processed.parquet # Limpio + características (12 cols)
+└── final_data.parquet # Codificado listo para modelos (23 cols)
 
 ## 📊 Metodología
 
