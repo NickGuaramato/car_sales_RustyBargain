@@ -38,77 +38,69 @@
 ## 🏗️ Architecture & Design
 
 ### 📁 Project Structure
-car_sales_RustyBargain/
-├── 📦 src/ # Source code (installable Python package)
-│ ├── preprocessing/ # Data processing pipeline
-│ │ ├── a_00_data_cleaning.py
-│ │ ├── a_01_feature_engineering.py
-│ │ ├── a_02_encoding.py
-│ │ ├── a_03_split_data.py
-│ │ └── a_06_save_results.py
-│ ├── models/ # Model training & prediction
-│ ├── utils/ # Configuration, logging, helpers
-│ └── visualization/ # EDA and plotting
-├── ⚙️ config/ # YAML configuration files
-│ ├── paths.yaml # Directory paths
-│ └── params.yaml # Model hyperparameters
-├── 🧪 tests/ # Comprehensive test suite
-│ ├── unit/ # Unit tests for modules
-│ └── integration/ # End-to-end pipeline tests
-├── 📊 artifacts/ # Generated outputs (not versioned)
-│ ├── models/ # Serialized models (.joblib)
-│ ├── reports/ # Metrics and statistics (.csv, .json)
-│ ├── plots/ # Visualization outputs
-│ └── logs/ # Pipeline execution logs
-├── 📓 notebooks/ # Exploratory data analysis
-├── 🐳 Dockerfile # Containerization
-├── 📄 pyproject.toml # Modern Python packaging
-└── 🌿 environment.yml # Conda environment specification
+**car_sales_RustyBargain/**
+- `src/` - Source code (installable Python package)
+  - `preprocessing/` - Data processing pipeline
+    - `a_00_data_cleaning.py`
+    - `a_01_feature_engineering.py`
+    - `a_02_encoding.py`
+    - `a_03_split_data.py`
+    - `a_06_save_results.py`
+  - `models/` - Model training & prediction
+  - `utils/` - Configuration, logging, helpers
+  - `visualization/` - EDA and plotting
+- `config/` - YAML configuration files
+  - `paths.yaml` - Directory paths
+  - `params.yaml` - Model hyperparameters
+- `tests/` - Comprehensive test suite
+  - `unit/` - Unit tests for modules
+  - `integration/` - End-to-end pipeline tests
+- `artifacts/` - Generated outputs (not versioned)
+  - `models/` - Serialized models (.joblib)
+  - `reports/` - Metrics and statistics (.csv, .json)
+  - `plots/` - Visualization outputs
+  - `logs/` - Pipeline execution logs
+- `notebooks/` - Exploratory data analysis
+- `Dockerfile` - Containerization
+- `pyproject.toml` - Modern Python packaging
+- `environment.yml` - Conda environment specification
 
 
 ### 🔄 Pipeline Flow & Data Persistence
-📁 data/raw/car_data.csv (354,369 rows)
-│
-▼ (a_00_data_cleaning.py)
-🧹 Data Cleaning & Filtering
-├── 🗑️ Remove duplicates → 326,826 rows
-├── 🎯 Apply filters (year, price, power) → 314,814 rows
-├── 🔧 Handle missing values → 258,199 rows (cleaned)
-├──   Type conversion
-│
-├── 💾 SAVE: artifacts/reports/unduplicated_data.pkl (326,826 rows)
-└── 💾 SAVE: artifacts/reports/preprocessed_data.pkl (258,199 rows)
-│
-▼ (a_01_feature_engineering.py)
-⚙️ Feature Engineering
-├── ➕ Add: vehicle_age (2024 - registration_year)
-├── ➕ Add: mileage_per_year (mileage / vehicle_age)
-├── ➖ Drop: registration_month
-│
-└── 💾 SAVE: data/processed/data_processed.parquet (258,199 rows, 12 cols)
-│
-▼ (a_02_encoding.py)
-🔢 Encoding & Transformation
-├── 🔄 Frequency encoding: brand → brand_freq, model → model_freq
-├── 🎭 One-Hot encoding: vehicle_type, gearbox, fuel_type
-├── 📏 Standard scaling: power, mileage, vehicle_age
-├── 📈 Log transformation: price → log_price (optional)
-│
-└── 💾 SAVE: data/processed/final_data.parquet (258,199 rows, 23 cols)
-│
-▼ (a_05_train.py)
-🤖 Model Training & Prediction (Train 5 models with optimized hyperparameters)
-├── 📊 For tree models (LGBM): Use data_processed.parquet (categorical features)
-├── ⚙️ For other models (XGBoost, RF, DT): Use final_data.parquet (encoded features)
-├── **Evaluate using RMSE**
-├── 💾 Save models: artifacts/models/*.joblib
-└── 💾 Save metrics: artifacts/reports/selected_models.json
-│
-▼ (main.py & predict.py)
-🚀 Deployment Ready
-├── Serialized models (.joblib)
-├── Trained encoders
-└── Prediction API (predict.py)
+**📁 data/raw/car_data.csv** (354,369 rows)
+
+**▼ (a_00_data_cleaning.py) - Data Cleaning & Filtering**
+- 🗑️ Remove duplicates → 326,826 rows
+- 🎯 Apply filters (year, price, power) → 314,814 rows
+- 🔧 Handle missing values → 258,199 rows (cleaned)
+- Type conversion
+- 💾 **SAVE:** `artifacts/reports/unduplicated_data.pkl` (326,826 rows)
+- 💾 **SAVE:** `artifacts/reports/preprocessed_data.pkl` (258,199 rows)
+
+**▼ (a_01_feature_engineering.py) - Feature Engineering**
+- ➕ Add: `vehicle_age` (2024 - registration_year)
+- ➕ Add: `mileage_per_year` (mileage / vehicle_age)
+- ➖ Drop: registration_month
+- 💾 **SAVE:** `data/processed/data_processed.parquet` (258,199 rows, 12 cols)
+
+**▼ (a_02_encoding.py) - Encoding & Transformation**
+- 🔄 Frequency encoding: `brand → brand_freq`, `model → model_freq`
+- 🎭 One-Hot encoding: `vehicle_type`, `gearbox`, `fuel_type`
+- 📏 Standard scaling: `power`, `mileage`, `vehicle_age`
+- 📈 Log transformation: `price → log_price` (optional)
+- 💾 **SAVE:** `data/processed/final_data.parquet` (258,199 rows, 23 cols)
+
+**▼ (a_05_train.py) - Model Training & Prediction**
+- 📊 For tree models (LGBM): Use `data_processed.parquet`
+- ⚙️ For other models (XGBoost, RF, DT): Use `final_data.parquet`
+- **Evaluate using RMSE**
+- 💾 Save models: `artifacts/models/*.joblib`
+- 💾 Save metrics: `artifacts/reports/selected_models.json`
+
+**▼ (main.py & predict.py) - Deployment Ready**
+- Serialized models (.joblib)
+- Trained encoders
+- Prediction API (`predict.py`)
 
 **Key Explanation**:
 - **`unduplicated_data.pkl`**: Dataset after duplicate removal, BEFORE hard filters
@@ -225,21 +217,21 @@ All 9 features must be provided for predictions:
 ### 📁 Expected Output Structure
 After running the pipeline, you'll find:
 
-artifacts/
-├── models/                    # Serialized models (.joblib)
-│   ├── LGBM.joblib           # Best performing model
-│   ├── LGBM_log.joblib
-│   ├── XGBoost_log.joblib
-│   └── ...
-├── reports/                   # Evaluation metrics
-│   ├── selected_models.json  # RMSE scores
-│   ├── selected_models.csv
-│   └── preprocessed_data_statistics.csv
-└── logs/pipeline.log         # Execution log with timestamps
+**artifacts/**
+- `models/` - Serialized models (.joblib)
+  - `LGBM.joblib` - Best performing model
+  - `LGBM_log.joblib`
+  - `XGBoost_log.joblib`
+  - ...
+- `reports/` - Evaluation metrics
+  - `selected_models.json` - RMSE scores
+  - `selected_models.csv`
+  - `preprocessed_data_statistics.csv`
+- `logs/pipeline.log` - Execution log with timestamps
 
-data/processed/               # Intermediate datasets
-├── data_processed.parquet    # Cleaned + features (12 cols)
-└── final_data.parquet        # Encoded ready for models (23 cols)
+**data/processed/** - Intermediate datasets
+- `data_processed.parquet` - Cleaned + features (12 cols)
+- `final_data.parquet` - Encoded ready for models (23 cols)
 
 
 ## 📊 Methodology
